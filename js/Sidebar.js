@@ -176,6 +176,7 @@ function Sidebar(loopy){
 
             "<span class='mini_button' onclick='publish(\"modal\",[\"save_link\"])'>guardar como link</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"export/file\")'>guardar como archivo</span> <br><br>"+
+            "<span class='mini_button' onclick='publish(\"save/png\")'>guardar como imagen (.png)</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"import/file\")'>cargar archivo</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"modal\",[\"embed\"])'>insertar en tu página web</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"modal\",[\"save_gif\"])'>hacer un .gif</span> <br><br>"+
