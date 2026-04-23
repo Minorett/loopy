@@ -1,4 +1,4 @@
-# LOOPY.ESP (v1.1)
+# LOOPY.ESP (v1.2)
 
 LOOPY es una herramienta interactiva basada en la web para el pensamiento sistémico. Permite crear simulaciones de sistemas complejos mediante diagramas visuales de forma fácil y lúdica.
 
@@ -6,10 +6,10 @@ Esta versión, **LOOPY.ESP**, es una adaptación y extensión del [LOOPY origina
 
 ## 🚀 Nuevas Características
 
-Esta versión (v1.1) incluye las siguientes mejoras y adaptaciones:
+Esta versión (v1.2) incluye las siguientes mejoras y adaptaciones:
 
 1.  **Traducción completa al español**: Toda la interfaz de usuario, menús y mensajes han sido traducidos íntegramente al castellano.
-2.  **Grilla de Análisis Clínico (3x3)**: Se ha implementado una cuadrícula de análisis 3x3 con un botón de alternancia (toggle) para facilitar el mapeo y estudio de sistemas en contextos clínicos y profesionales.
+2.  **Grilla de Análisis Clínico (3x3)**: Se ha implementado una cuadrícula de análisis 3x3 con un botón de alternancia (toggle) para facilitar el mapeo y estudio clínico, basado en el MetaModelo Evolutivo Extendido (MMEE).
 3.  **Soporte para ajuste de línea (Word-wrap)**: Las etiquetas de los nodos ahora admiten múltiples líneas de texto, permitiendo descripciones más detalladas sin perder legibilidad.
 4.  **Fuerza de relación granular**: Ahora es posible definir la fuerza de los bordes con mayor precisión (en un rango de 0.1 a 2.0). El grosor de la línea y el tamaño de la punta de la flecha se ajustan proporcionalmente a esta fuerza.
 5.  **Diferenciación visual de flechas**:
