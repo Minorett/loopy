@@ -1,3 +1,4 @@
+![](https://i.imgur.com/S8c7E8o.gif)
 # LOOPY.ESP (v1.2)
 
 LOOPY es una herramienta interactiva basada en la web para el pensamiento sistémico. Permite crear simulaciones de sistemas complejos mediante diagramas visuales de forma fácil y lúdica.
