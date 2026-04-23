@@ -39,6 +39,9 @@ function Node(model, config){
         radius: Node.DEFAULT_RADIUS
     });
 
+    // Centrality
+    self.centrality = 0;
+
     // Value: from 0 to 1
     self.value = self.init;
     // TODO: ACTUALLY VISUALIZE AN INFINITE RANGE
@@ -187,7 +190,34 @@ function Node(model, config){
         // Translate!
         ctx.save();
         ctx.translate(x,y+_offset);
-        
+
+        // CENTRALITY HALO
+        if(self.loopy.showCentrality){
+            var ratio = 0;
+            if(self.model.maxCentrality > 0){
+                ratio = self.centrality / self.model.maxCentrality;
+            }
+
+            var haloColor;
+            if(ratio > 0.66){
+                haloColor = "rgba(234, 62, 62, 0.8)"; // Red
+            } else if(ratio > 0.33){
+                haloColor = "rgba(234, 157, 81, 0.8)"; // Orange/Yellow
+            } else {
+                haloColor = "rgba(127, 212, 255, 0.8)"; // Blue
+            }
+
+            var haloSize = r * (1 + ratio * 0.5) + 20;
+            var gradient = ctx.createRadialGradient(0, 0, r * 0.5, 0, 0, haloSize);
+            gradient.addColorStop(0, haloColor);
+            gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+            ctx.beginPath();
+            ctx.arc(0, 0, haloSize, 0, Math.TAU, false);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
         // DRAW HIGHLIGHT???
         if(self.loopy.sidebar.currentPage.target == self){
             ctx.beginPath();
@@ -195,7 +225,7 @@ function Node(model, config){
             ctx.fillStyle = HIGHLIGHT_COLOR;
             ctx.fill();
         }
-        
+
         // White-gray bubble with colored border
         ctx.beginPath();
         ctx.arc(0, 0, r-2, 0, Math.TAU, false);
