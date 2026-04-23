@@ -15,282 +15,285 @@ Loopy.TOOL_LABEL = 3;
 
 function Loopy(config){
 
-	var self = this;
-	self.config = config;
+    var self = this;
+    self.config = config;
 
-	// Loopy: EMBED???
-	self.embedded = _getParameterByName("embed");
-	self.embedded = !!parseInt(self.embedded); // force to Boolean
+    // Loopy: EMBED???
+    self.embedded = _getParameterByName("embed");
+    self.embedded = !!parseInt(self.embedded); // force to Boolean
 
-	// Offset & Scale?!?!
-	self.offsetX = 0;
-	self.offsetY = 0;
-	self.offsetScale = 1;
+    // Offset & Scale?!?!
+    self.offsetX = 0;
+    self.offsetY = 0;
+    self.offsetScale = 1;
 
-	// Mouse
-	Mouse.init(document.getElementById("canvasses")); // TODO: ugly fix, ew
-	
-	// Model
-	self.model = new Model(self);
+    // Mouse
+    Mouse.init(document.getElementById("canvasses")); // TODO: ugly fix, ew
+    
+    // Model
+    self.model = new Model(self);
 
-	// Loopy: SPEED!
-	self.signalSpeed = 3;
+    // Loopy: SPEED!
+    self.signalSpeed = 3;
 
-	// Sidebar
-	self.sidebar = new Sidebar(self);
-	self.sidebar.showPage("Edit"); // start here
+    // Sidebar
+    self.sidebar = new Sidebar(self);
+    self.sidebar.showPage("Edit"); // start here
 
-	// Play/Edit mode
-	self.mode = Loopy.MODE_EDIT;
+    // Play/Edit mode
+    self.mode = Loopy.MODE_EDIT;
 
-	// Tools
-	self.toolbar = new Toolbar(self);
-	self.tool = Loopy.TOOL_INK;
-	self.ink = new Ink(self);
-	self.drag = new Dragger(self);
-	self.erase = new Eraser(self);
-	self.label = new Labeller(self);
+    // Centrality
+    self.showCentrality = false;
 
-	// Play Controls
-	self.playbar = new PlayControls(self);
-	self.playbar.showPage("Editor"); // start here
+    // Tools
+    self.toolbar = new Toolbar(self);
+    self.tool = Loopy.TOOL_INK;
+    self.ink = new Ink(self);
+    self.drag = new Dragger(self);
+    self.erase = new Eraser(self);
+    self.label = new Labeller(self);
 
-	// Modal
-	self.modal = new Modal(self);
+    // Play Controls
+    self.playbar = new PlayControls(self);
+    self.playbar.showPage("Editor"); // start here
 
-	//////////
-	// INIT //
-	//////////
+    // Modal
+    self.modal = new Modal(self);
 
-	self.init = function(){
-		self.loadFromURL(); // try it.
-	};
+    //////////
+    // INIT //
+    //////////
 
-	///////////////////
-	// UPDATE & DRAW //
-	///////////////////
+    self.init = function(){
+        self.loadFromURL(); // try it.
+    };
 
-	// Update
-	self.update = function(){
-		Mouse.update();
-		if(self.wobbleControls>=0) self.wobbleControls--; // wobble
-		if(!self.modal.isShowing){ // modAl
-			self.model.update(); // modEl
-		}
-	};
-	setInterval(self.update, 1000/30); // 30 FPS, why not.
+    ///////////////////
+    // UPDATE & DRAW //
+    ///////////////////
 
-	// Draw
-	self.draw = function(){
-		if(!self.modal.isShowing){ // modAl
-			self.model.draw(); // modEl
-		}
-		requestAnimationFrame(self.draw);
-	};
+    // Update
+    self.update = function(){
+        Mouse.update();
+        if(self.wobbleControls>=0) self.wobbleControls--; // wobble
+        if(!self.modal.isShowing){ // modAl
+            self.model.update(); // modEl
+        }
+    };
+    setInterval(self.update, 1000/30); // 30 FPS, why not.
 
-	// TODO: Smarter drawing of Ink, Edges, and Nodes
-	// (only Nodes need redrawing often. And only in PLAY mode.)
+    // Draw
+    self.draw = function(){
+        if(!self.modal.isShowing){ // modAl
+            self.model.draw(); // modEl
+        }
+        requestAnimationFrame(self.draw);
+    };
 
-	//////////////////////
-	// PLAY & EDIT MODE //
-	//////////////////////
+    // TODO: Smarter drawing of Ink, Edges, and Nodes
+    // (only Nodes need redrawing often. And only in PLAY mode.)
 
-	self.showPlayTutorial = false;
-	self.wobbleControls = -1;
-	self.setMode = function(mode){
+    //////////////////////
+    // PLAY & EDIT MODE //
+    //////////////////////
 
-		self.mode = mode;
-		publish("loopy/mode");
+    self.showPlayTutorial = false;
+    self.wobbleControls = -1;
+    self.setMode = function(mode){
 
-		// Play mode!
-		if(mode==Loopy.MODE_PLAY){
-			self.showPlayTutorial = true; // show once!
-			if(!self.embedded) self.wobbleControls=45; // only if NOT embedded
-			self.sidebar.showPage("Edit");
-			self.playbar.showPage("Player");
-			self.sidebar.dom.setAttribute("mode","play");
-			self.toolbar.dom.setAttribute("mode","play");
-			document.getElementById("canvasses").removeAttribute("cursor"); // TODO: EVENT BASED
-		}else{
-			publish("model/reset");
-		}
+        self.mode = mode;
+        publish("loopy/mode");
 
-		// Edit mode!
-		if(mode==Loopy.MODE_EDIT){
-			self.showPlayTutorial = false; // donezo
-			self.wobbleControls = -1; // donezo
-			self.sidebar.showPage("Edit");
-			self.playbar.showPage("Editor");
-			self.sidebar.dom.setAttribute("mode","edit");
-			self.toolbar.dom.setAttribute("mode","edit");
-			document.getElementById("canvasses").setAttribute("cursor", self.toolbar.currentTool); // TODO: EVENT BASED
-		}
+        // Play mode!
+        if(mode==Loopy.MODE_PLAY){
+            self.showPlayTutorial = true; // show once!
+            if(!self.embedded) self.wobbleControls=45; // only if NOT embedded
+            self.sidebar.showPage("Edit");
+            self.playbar.showPage("Player");
+            self.sidebar.dom.setAttribute("mode","play");
+            self.toolbar.dom.setAttribute("mode","play");
+            document.getElementById("canvasses").removeAttribute("cursor"); // TODO: EVENT BASED
+        }else{
+            publish("model/reset");
+        }
 
-	};
+        // Edit mode!
+        if(mode==Loopy.MODE_EDIT){
+            self.showPlayTutorial = false; // donezo
+            self.wobbleControls = -1; // donezo
+            self.sidebar.showPage("Edit");
+            self.playbar.showPage("Editor");
+            self.sidebar.dom.setAttribute("mode","edit");
+            self.toolbar.dom.setAttribute("mode","edit");
+            document.getElementById("canvasses").setAttribute("cursor", self.toolbar.currentTool); // TODO: EVENT BASED
+        }
 
-	/////////////////
-	// SAVE & LOAD //
-	/////////////////
+    };
 
-	self.dirty = false;
+    /////////////////
+    // SAVE & LOAD //
+    /////////////////
 
-	// YOU'RE A DIRTY BOY
-	subscribe("model/changed", function(){
-		if(!self.embedded) self.dirty = true;
-	});
+    self.dirty = false;
 
-	subscribe("export/file", function(){
-		var element = document.createElement('a');
-		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + self.model.serialize());
-		element.setAttribute('download', "system_model.loopy");
+    // YOU'RE A DIRTY BOY
+    subscribe("model/changed", function(){
+        if(!self.embedded) self.dirty = true;
+    });
 
-		element.style.display = 'none';
-		document.body.appendChild(element);
+    subscribe("export/file", function(){
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + self.model.serialize());
+        element.setAttribute('download', "system_model.loopy");
 
-		element.click();
+        element.style.display = 'none';
+        document.body.appendChild(element);
 
-		document.body.removeChild(element);
-	});
+        element.click();
 
-	subscribe("import/file", function(){
-		let input = document.createElement('input');
-		input.type = 'file';
-		input.onchange = e => {
-			var file = e.target.files[0];
-			var reader = new FileReader();
-			reader.readAsText(file,'UTF-8');
-			reader.onload = readerEvent => {
-				var content = readerEvent.target.result;
-				self.model.deserialize(content);
-			}
-		};
-		input.click();
-	});
+        document.body.removeChild(element);
+    });
 
-	self.saveToURL = function(embed){
+    subscribe("import/file", function(){
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => {
+            var file = e.target.files[0];
+            var reader = new FileReader();
+            reader.readAsText(file,'UTF-8');
+            reader.onload = readerEvent => {
+                var content = readerEvent.target.result;
+                self.model.deserialize(content);
+            }
+        };
+        input.click();
+    });
 
-		// Create link
-		var dataString = self.model.serialize();
-		var uri = dataString; // encodeURIComponent(dataString);
-		var base = window.location.origin + window.location.pathname;
-		var historyLink = base+"?data="+uri;
-		var link;
-		if(embed){
-			link = base+"?embed=1&data="+uri;
-		}else{
-			link = historyLink;
-		}
+    self.saveToURL = function(embed){
 
-		// NO LONGER DIRTY!
-		self.dirty = false;
+        // Create link
+        var dataString = self.model.serialize();
+        var uri = dataString; // encodeURIComponent(dataString);
+        var base = window.location.origin + window.location.pathname;
+        var historyLink = base+"?data="+uri;
+        var link;
+        if(embed){
+            link = base+"?embed=1&data="+uri;
+        }else{
+            link = historyLink;
+        }
 
-		// PUSH TO HISTORY
-		window.history.replaceState(null, null, historyLink);
+        // NO LONGER DIRTY!
+        self.dirty = false;
 
-		return link;
-	};
-	
-	// "BLANK START" DATA:
-	var _blankData = "[[[1,459,609,0,%22Ansiedad%22,4],[2,293,773,0,%22Evitaci%25C3%25B3n%22,0]],[[2,1,100,1,0],[1,2,100,1,0]],[[364,944,%22Russ%2520Harris%2520(2019)%2520-%2520Diagrama%2520DOTS%253A%250A%2520%2520Ansiedad%2520-%253E%2520Evitaci%25C3%25B3n%2520-%253E%2520Alivio%2520temporal%2520-%253E%2520Ansiedad.%250A%250A%2520En%2520Loopy%253A%250A%2520Ansiedad%2520%253C-%253E%2520Evitaci%25C3%25B3n%2520experiencial%2520%250A%2520(se%2520refuerzan%2520mutuamente).%22]],3%5D";
+        // PUSH TO HISTORY
+        window.history.replaceState(null, null, historyLink);
 
-
-	self.loadFromURL = function(){
-		var data = _getParameterByName("data");
-		if(!data) data=decodeURIComponent(_blankData);
-		self.model.deserialize(data);
-	}; 
+        return link;
+    };
+    
+    // "BLANK START" DATA:
+    var _blankData = "[[[1,459,609,0,%22Ansiedad%22,4],[2,293,773,0,%22Evitaci%25C3%25B3n%22,0]],[[2,1,100,1,0],[1,2,100,1,0]],[[364,944,%22Russ%2520Harris%2520(2019)%2520-%2520Diagrama%2520DOTS%253A%250A%2520%2520Ansiedad%2520-%253E%2520Evitaci%25C3%25B3n%2520-%253E%2520Alivio%2520temporal%2520-%253E%2520Ansiedad.%250A%250A%2520En%2520Loopy%253A%250A%2520Ansiedad%2520%253C-%253E%2520Evitaci%25C3%25B3n%2520experiencial%2520%250A%2520(se%2520refuerzan%2520mutuamente).%22]],3%5D";
 
 
-	///////////////////////////
-	//////// EMBEDDED? ////////
-	///////////////////////////
+    self.loadFromURL = function(){
+        var data = _getParameterByName("data");
+        if(!data) data=decodeURIComponent(_blankData);
+        self.model.deserialize(data);
+    }; 
 
-	self.init();
 
-	if(self.embedded){
+    ///////////////////////////
+    //////// EMBEDDED? ////////
+    ///////////////////////////
 
-		// Hide all that UI
-		self.toolbar.dom.style.display = "none";
-		self.sidebar.dom.style.display = "none";
+    self.init();
 
-		// If *NO UI AT ALL*
-		var noUI = !!parseInt(_getParameterByName("no_ui")); // force to Boolean
-		if(noUI){
-			_PADDING_BOTTOM = _PADDING;
-			self.playbar.dom.style.display = "none";
-		}
+    if(self.embedded){
 
-		// Fullscreen canvas
-		document.getElementById("canvasses").setAttribute("fullscreen","yes");
-		self.playbar.dom.setAttribute("fullscreen","yes");
-		publish("resize");
+        // Hide all that UI
+        self.toolbar.dom.style.display = "none";
+        self.sidebar.dom.style.display = "none";
 
-		// Center & SCALE The Model
-		self.model.center(true);
-		subscribe("resize",function(){
-			self.model.center(true);
-		});
+        // If *NO UI AT ALL*
+        var noUI = !!parseInt(_getParameterByName("no_ui")); // force to Boolean
+        if(noUI){
+            _PADDING_BOTTOM = _PADDING;
+            self.playbar.dom.style.display = "none";
+        }
 
-		// Autoplay!
-		self.setMode(Loopy.MODE_PLAY);
+        // Fullscreen canvas
+        document.getElementById("canvasses").setAttribute("fullscreen","yes");
+        self.playbar.dom.setAttribute("fullscreen","yes");
+        publish("resize");
 
-		// Also, HACK: auto signal
-		var signal = _getParameterByName("signal");
-		if(signal){
-			signal = JSON.parse(signal);
-			var node = self.model.getNode(signal[0]);
-			node.takeSignal({
-				delta: signal[1]*0.33
-			});
-		}
+        // Center & SCALE The Model
+        self.model.center(true);
+        subscribe("resize",function(){
+            self.model.center(true);
+        });
 
-	}else{
+        // Autoplay!
+        self.setMode(Loopy.MODE_PLAY);
 
-		// Center all the nodes & labels
+        // Also, HACK: auto signal
+        var signal = _getParameterByName("signal");
+        if(signal){
+            signal = JSON.parse(signal);
+            var node = self.model.getNode(signal[0]);
+            node.takeSignal({
+                delta: signal[1]*0.33
+            });
+        }
 
-		// If no nodes & no labels, forget it.
-		if(self.model.nodes.length>0 || self.model.labels.length>0){
+    }else{
 
-			// Get bounds of ALL objects...
-			var bounds = self.model.getBounds();
-			var left = bounds.left;
-			var top = bounds.top;
-			var right = bounds.right;
-			var bottom = bounds.bottom;
+        // Center all the nodes & labels
 
-			// Re-center!
-			var canvasses = document.getElementById("canvasses");
-			var cx = (left+right)/2;
-			var cy = (top+bottom)/2;
-			var offsetX = (canvasses.clientWidth+50)/2 - cx;
-			var offsetY = (canvasses.clientHeight-80)/2 - cy;
+        // If no nodes & no labels, forget it.
+        if(self.model.nodes.length>0 || self.model.labels.length>0){
 
-			// MOVE ALL NODES
-			for(var i=0;i<self.model.nodes.length;i++){
-				var node = self.model.nodes[i];
-				node.x += offsetX;
-				node.y += offsetY;
-			}
+            // Get bounds of ALL objects...
+            var bounds = self.model.getBounds();
+            var left = bounds.left;
+            var top = bounds.top;
+            var right = bounds.right;
+            var bottom = bounds.bottom;
 
-			// MOVE ALL LABELS
-			for(var i=0;i<self.model.labels.length;i++){
-				var label = self.model.labels[i];
-				label.x += offsetX;
-				label.y += offsetY;
-			}
+            // Re-center!
+            var canvasses = document.getElementById("canvasses");
+            var cx = (left+right)/2;
+            var cy = (top+bottom)/2;
+            var offsetX = (canvasses.clientWidth+50)/2 - cx;
+            var offsetY = (canvasses.clientHeight-80)/2 - cy;
 
-		}
+            // MOVE ALL NODES
+            for(var i=0;i<self.model.nodes.length;i++){
+                var node = self.model.nodes[i];
+                node.x += offsetX;
+                node.y += offsetY;
+            }
 
-	}
+            // MOVE ALL LABELS
+            for(var i=0;i<self.model.labels.length;i++){
+                var label = self.model.labels[i];
+                label.x += offsetX;
+                label.y += offsetY;
+            }
 
-	// NOT DIRTY, THANKS
-	self.dirty = false;
+        }
 
-	// SHOW ME, THANKS
-	document.body.style.opacity = "";
+    }
 
-	// GO.
-	requestAnimationFrame(self.draw);
+    // NOT DIRTY, THANKS
+    self.dirty = false;
+
+    // SHOW ME, THANKS
+    document.body.style.opacity = "";
+
+    // GO.
+    requestAnimationFrame(self.draw);
 
 
 }

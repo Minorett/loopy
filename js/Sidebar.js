@@ -170,6 +170,7 @@ function Sidebar(loopy){
             "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
             "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span> "+
             "<span class='mini_button' onclick='publish(\"modal\",[\"credits\"])'>créditos</span><br><br>"+
+            "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span><br><br>"+
 
             "<hr/><br>"+
 
@@ -197,7 +198,19 @@ function Sidebar(loopy){
         }
     });
 
-}
+    // Centrality toggle
+    subscribe("centrality/toggle", function(){
+        loopy.showCentrality = !loopy.showCentrality;
+        if(loopy.showCentrality){
+            loopy.model.calculateCentrality();
+            document.getElementById("centrality_button").setAttribute("active","yes");
+        }else{
+            document.getElementById("centrality_button").removeAttribute("active");
+        }
+        publish("model/changed");
+    });
+
+    }
 
 function SidebarPage(){
 
