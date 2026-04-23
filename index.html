@@ -3,35 +3,35 @@
 <head>
     
     <!-- META -->
-	<title>LOOPY.ESP (v1.1)</title>
+    <title>LOOPY.ESP (v1.1)</title>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-	<meta content="utf-8" http-equiv="encoding">
-	<meta charset="utf-8">
-	<link rel="icon" type="image/png" href="favicon.png">
+    <meta content="utf-8" http-equiv="encoding">
+    <meta charset="utf-8">
+    <link rel="icon" type="image/png" href="favicon.png">
 
-	<!-- Schema.org markup for Google+ -->
-	<meta itemprop="name" content="LOOPY! Español">
-	<meta itemprop="description" content="Una herramienta para pensar en sistemas">
-	<meta itemprop="image" content="http://ncase.me/loopy/social/thumbnail.png">
+    <!-- Schema.org markup for Google+ -->
+    <meta itemprop="name" content="LOOPY! Español">
+    <meta itemprop="description" content="Una herramienta para pensar en sistemas">
+    <meta itemprop="image" content="http://ncase.me/loopy/social/thumbnail.png">
 
-	<!-- Twitter Card data: SMALL -->
-	<meta name="twitter:card" content="summary"/>
-	<meta name="twitter:site" content="@ncasenmare"/>
-	<meta name="twitter:title" content="LOOPY! Español"/>
-	<meta name="twitter:description" content="una herramienta para pensar en sistemas"/>
-	<meta name="twitter:creator" content="@ncasenmare">
-	<meta name="twitter:image" content="http://ncase.me/loopy/social/thumbnail_small.png"/>
+    <!-- Twitter Card data: SMALL -->
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@ncasenmare"/>
+    <meta name="twitter:title" content="LOOPY! Español"/>
+    <meta name="twitter:description" content="una herramienta para pensar en sistemas"/>
+    <meta name="twitter:creator" content="@ncasenmare">
+    <meta name="twitter:image" content="http://ncase.me/loopy/social/thumbnail_small.png"/>
 
-	<!-- Open Graph data -->
-	<meta property="og:title" content="LOOPY! Español">
-	<meta property="og:type" content="website">
-	<meta property="og:url" content="http://ncase.me/loopy/">
-	<meta property="og:image" content="http://ncase.me/loopy/social/thumbnail.png">
-	<meta property="og:description" content="una herramienta para pensar en sistemas">
+    <!-- Open Graph data -->
+    <meta property="og:title" content="LOOPY! Español">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://ncase.me/loopy/">
+    <meta property="og:image" content="http://ncase.me/loopy/social/thumbnail.png">
+    <meta property="og:description" content="una herramienta para pensar en sistemas">
 
     <!-- Styles! -->
-	<link href="css/loopy.css" rel="stylesheet"/>
-	<link href="css/balloon.css" rel="stylesheet"/>
+    <link href="css/loopy.css" rel="stylesheet"/>
+    <link href="css/balloon.css" rel="stylesheet"/>
 
     <!-- Custom Style for button -->
     <style>
@@ -59,22 +59,39 @@
 </head>
 <body style="opacity:0">
 
-	<!-- Loopy & Ink -->
-	<div id="canvasses"></div>
+    <!-- Loopy & Ink -->
+    <div id="canvasses">
+        <div id="grid-overlay">
+            <div class="grid-cell">Atención</div>
+            <div class="grid-cell">Cognición</div>
+            <div class="grid-cell">Self</div>
+            <div class="grid-cell">Afecto</div>
+            <div class="grid-cell">Conducta</div>
+            <div class="grid-cell">Motivación</div>
+            <div class="grid-cell">Biofisiológico</div>
+            <div class="grid-cell">Contexto</div>
+            <div class="grid-cell">Sociocultural</div>
+        </div>
+    </div>
 
-	<!-- The Tools' UI -->
-	<div id="toolbar"></div>
-	<div id="playbar"></div>
-	<div id="sidebar"></div>
+    <!-- Grid Toggle Button -->
+    <button id="grid-toggle" title="Alternar Grilla de Análisis">
+        <img src="https://img.icons8.com/material-outlined/24/ffffff/grid.png" alt="Grilla" style="width:24px;height:24px;">
+    </button>
 
-	<!-- MODAL -->
-	<div id="modal_container">
-		<div id="modal_bg"></div>
-		<div id="modal">
-			<div id="modal_close">[×] CERRAR</div>
-			<div id="modal_page"></div>
-		</div>
-	</div>
+    <!-- The Tools' UI -->
+    <div id="toolbar"></div>
+    <div id="playbar"></div>
+    <div id="sidebar"></div>
+
+    <!-- MODAL -->
+    <div id="modal_container">
+        <div id="modal_bg"></div>
+        <div id="modal">
+            <div id="modal_close">[×] CERRAR</div>
+            <div id="modal_page"></div>
+        </div>
+    </div>
 
     <!-- En Medio del Contexto link con imagen -->
     <a href="https://enmediodelcontexto.com.ar" class="contexto-link" target="_blank">
@@ -113,6 +130,17 @@
 <!-- Start it -->
 <script>
 window.onload = function(){
-	window.loopy = new Loopy();
+    window.loopy = new Loopy();
+
+    // Grid toggle logic
+    var gridToggle = document.getElementById('grid-toggle');
+    var gridOverlay = document.getElementById('grid-overlay');
+    gridToggle.onclick = function() {
+        if (gridOverlay.classList.contains('show')) {
+            gridOverlay.classList.remove('show');
+        } else {
+            gridOverlay.classList.add('show');
+        }
+    };
 };
 </script>
