@@ -319,3 +319,62 @@ MODAL
 #modal iframe{
 	border: none;
 }
+
+/**********
+ GRID OVERLAY
+**********/
+
+#grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#grid-overlay.show {
+    display: grid;
+}
+
+.grid-cell {
+    border: 1px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#grid-toggle {
+    position: fixed;
+    bottom: 200px; /* Above the logo link */
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #222;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+    z-index: 1000;
+}
+
+#grid-toggle:hover {
+    background: #444;
+}
