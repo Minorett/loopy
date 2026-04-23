@@ -155,6 +155,34 @@ function Loopy(config){
         document.body.removeChild(element);
     });
 
+    subscribe("save/png", function(){
+        var modelCanvas = self.model.canvas;
+        var inkCanvas = self.ink.canvas;
+        
+        // Create a temporary canvas for compositing
+        var tempCanvas = document.createElement('canvas');
+        tempCanvas.width = modelCanvas.width;
+        tempCanvas.height = modelCanvas.height;
+        var tempCtx = tempCanvas.getContext('2d');
+        
+        // 1. Fill with white background
+        tempCtx.fillStyle = "#fff";
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // 2. Draw the model (and ink) on top
+        tempCtx.drawImage(modelCanvas, 0, 0);
+        tempCtx.drawImage(inkCanvas, 0, 0);
+
+        // 3. Trigger download
+        var link = document.createElement('a');
+        link.setAttribute('download', "system_model.png");
+        link.setAttribute('href', tempCanvas.toDataURL("image/png"));
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
     subscribe("import/file", function(){
         let input = document.createElement('input');
         input.type = 'file';
