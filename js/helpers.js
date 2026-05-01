@@ -330,23 +330,7 @@ function _wrapText(ctx, text, maxWidth) {
                 currentLine = testLine;
             } else {
                 if (currentLine !== "") lines.push(currentLine);
-                
-                // If the word itself is too long for one line
-                if (ctx.measureText(word).width > maxWidth) {
-                    var chars = word.split("");
-                    var part = "";
-                    for (var k = 0; k < chars.length; k++) {
-                        if (ctx.measureText(part + chars[k]).width <= maxWidth) {
-                            part += chars[k];
-                        } else {
-                            if(part!="") lines.push(part);
-                            part = chars[k];
-                        }
-                    }
-                    currentLine = part;
-                } else {
-                    currentLine = word;
-                }
+                currentLine = word;
             }
         }
         if (currentLine !== "") lines.push(currentLine);
