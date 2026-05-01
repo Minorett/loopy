@@ -141,8 +141,8 @@ function Edge(model, config){
 
             // Signal's direction & size
             var size = 40; // HARD-CODED
-            var sX = Math.max(0.5, Math.min(1.25, signal.scaleX));
-            var sY = Math.max(0.5, Math.min(1.25, Math.abs(signal.scaleY))) * (signal.scaleY < 0 ? -1 : 1);
+            var sX = 1.0;
+            var sY = 1.0 * (signal.scaleY < 0 ? -1 : 1);
             ctx.scale(sX, sY);
             ctx.scale(size, size);
 
