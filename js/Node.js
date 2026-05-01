@@ -279,7 +279,7 @@ function Node(model, config){
         var lines;
 
         while(fontsize > 5){
-            ctx.font = "normal "+fontsize+"px sans-serif";
+            ctx.font = "normal "+fontsize+"px 'Figtree', sans-serif";
             lines = _wrapText(ctx, self.label, maxWidth);
 
             var maxWidthExceeded = false;

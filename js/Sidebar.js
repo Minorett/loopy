@@ -180,6 +180,7 @@ function Sidebar(loopy){
             "<hr/><br>"+
 
             "<span class='mini_button' onclick='publish(\"modal\",[\"save_link\"])'>guardar como link</span> <br><br>"+
+            "<span class='mini_button' onclick='publish(\"save/short\")'>generar link corto</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"export/file\")'>guardar como archivo</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"save/png\")'>guardar como imagen (.png)</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"import/file\")'>cargar archivo</span> <br><br>"+

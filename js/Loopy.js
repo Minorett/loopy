@@ -173,7 +173,61 @@ function Loopy(config){
         tempCtx.drawImage(modelCanvas, 0, 0);
         tempCtx.drawImage(inkCanvas, 0, 0);
 
-        // 3. Trigger download
+        // 3. Draw the analysis grid if it's visible
+        var gridOverlay = document.getElementById('grid-overlay');
+        if (gridOverlay && gridOverlay.classList.contains('show')) {
+            var canvasWidth = tempCanvas.width;
+            var canvasHeight = tempCanvas.height;
+            var cellWidth = canvasWidth / 3;
+            var cellHeight = canvasHeight / 3;
+            
+            // Grid labels based on the HTML structure
+            var gridLabels = [
+                'Atención', 'Cognición', 'Self',
+                'Afecto', 'Conducta', 'Motivación',
+                'Biofisiológico', 'Contexto', 'Sociocultural'
+            ];
+            
+            // Draw grid lines
+            tempCtx.strokeStyle = '#cccccc';
+            tempCtx.lineWidth = 1;
+            tempCtx.setLineDash([5, 5]);
+            
+            // Vertical lines
+            for (var i = 1; i < 3; i++) {
+                tempCtx.beginPath();
+                tempCtx.moveTo(i * cellWidth, 0);
+                tempCtx.lineTo(i * cellWidth, canvasHeight);
+                tempCtx.stroke();
+            }
+            
+            // Horizontal lines
+            for (var i = 1; i < 3; i++) {
+                tempCtx.beginPath();
+                tempCtx.moveTo(0, i * cellHeight);
+                tempCtx.lineTo(canvasWidth, i * cellHeight);
+                tempCtx.stroke();
+            }
+            
+            tempCtx.setLineDash([]);
+            
+            // Draw labels
+            tempCtx.font = "bold 24px 'Figtree', sans-serif";
+            tempCtx.textAlign = "center";
+            tempCtx.textBaseline = "middle";
+            tempCtx.fillStyle = "rgba(136, 136, 136, 0.5)";
+            
+            for (var row = 0; row < 3; row++) {
+                for (var col = 0; col < 3; col++) {
+                    var label = gridLabels[row * 3 + col];
+                    var x = cellWidth * col + cellWidth / 2;
+                    var y = cellHeight * row + cellHeight / 2;
+                    tempCtx.fillText(label, x, y);
+                }
+            }
+        }
+
+        // 4. Trigger download
         var link = document.createElement('a');
         link.setAttribute('download', "system_model.png");
         link.setAttribute('href', tempCanvas.toDataURL("image/png"));
@@ -181,6 +235,58 @@ function Loopy(config){
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    });
+
+    // Save short link handler
+    subscribe("save/short", function(){
+        var modelData = self.model.serialize();
+        
+        // Show loading state
+        var loadingHTML = 
+            '<div style="text-align:center; padding: 40px;">' +
+            '<p style="font-size:20px;">Guardando modelo...</p>' +
+            '<p style="font-size:16px; color:#888;">Por favor espera...</p>' +
+            '</div>';
+        self.modal.show(loadingHTML);
+        
+        // Send to save.php
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'save.php?action=save', true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.success && response.shortUrl) {
+                            var resultHTML = 
+                                '<div style="text-align:center; padding: 20px;">' +
+                                '<h2 style="margin-bottom:20px;">¡Link Generated!</h2>' +
+                                '<p style="margin-bottom:15px;">Tu modelo ha sido guardado exitosamente.</p>' +
+                                '<p style="margin-bottom:20px;">ID: <strong>' + response.id + '</strong></p>' +
+                                '<div style="background:#eee; padding:15px; border-radius:5px; margin-bottom:20px;">' +
+                                '<input type="text" id="short_link_input" value="' + response.shortUrl + '" ' +
+                                'readonly style="width:100%; font-size:16px; padding:10px; text-align:center; border:1px solid #ccc; border-radius:5px;"/>' +
+                                '</div>' +
+                                '<button class="mini_button" onclick="copyToClipboard()" style="font-size:16px; padding:10px 20px;">Copiar Link</button> ' +
+                                '<span class="mini_button" onclick="window.open(\'' + response.shortUrl + '\', \'_blank\')" style="font-size:16px; padding:10px 20px;">Abrir Link</span>' +
+                                '</div>' +
+                                '<script>function copyToClipboard(){var input=document.getElementById("short_link_input");input.select();document.execCommand("copy");alert("¡Link copied to clipboard!");}</script>';
+                            self.modal.show(resultHTML);
+                        } else {
+                            self.modal.show('<div style="text-align:center; padding:40px;"><p style="color:#EA3E3E;">Error: ' + (response.error || 'Unknown error') + '</p></div>');
+                        }
+                    } catch (e) {
+                        self.modal.show('<div style="text-align:center; padding:40px;"><p style="color:#EA3E3E;">Error processing server response</p></div>');
+                    }
+                } else {
+                    self.modal.show('<div style="text-align:center; padding:40px;"><p style="color:#EA3E3E;">Server error (HTTP ' + xhr.status + ')</p></div>');
+                }
+            }
+        };
+        
+        xhr.send(JSON.stringify({ model: modelData }));
     });
 
     subscribe("import/file", function(){
@@ -226,6 +332,29 @@ function Loopy(config){
 
 
     self.loadFromURL = function(){
+        // Check for short link ID first
+        var shortId = _getParameterByName("s");
+        if (shortId) {
+            // Load from server
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'save.php?action=get&id=' + encodeURIComponent(shortId), false); // synchronous for now
+            xhr.send();
+            
+            if (xhr.status === 200) {
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success && response.model) {
+                        self.model.deserialize(response.model);
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error parsing server response:', e);
+                }
+            }
+            // If server load fails, fall through to data parameter or default
+        }
+        
+        // Load from URL data parameter or default
         var data = _getParameterByName("data");
         if(!data) data=decodeURIComponent(_blankData);
         self.model.deserialize(data);
