@@ -241,14 +241,6 @@ function Loopy(config){
     subscribe("save/short", function(){
         var modelData = self.model.serialize();
         
-        // Show loading state
-        var loadingHTML = 
-            '<div style="text-align:center; padding: 40px;">' +
-            '<p style="font-size:20px;">Guardando modelo...</p>' +
-            '<p style="font-size:16px; color:#888;">Por favor espera...</p>' +
-            '</div>';
-        self.modal.show(loadingHTML);
-        
         // Send to save.php
         var xhr = new XMLHttpRequest();
         xhr.open('POST', 'save.php?action=save', true);
@@ -260,28 +252,15 @@ function Loopy(config){
                     try {
                         var response = JSON.parse(xhr.responseText);
                         if (response.success && response.shortUrl) {
-                            var resultHTML = 
-                                '<div style="text-align:center; padding: 20px;">' +
-                                '<h2 style="margin-bottom:20px;">¡Link Generated!</h2>' +
-                                '<p style="margin-bottom:15px;">Tu modelo ha sido guardado exitosamente.</p>' +
-                                '<p style="margin-bottom:20px;">ID: <strong>' + response.id + '</strong></p>' +
-                                '<div style="background:#eee; padding:15px; border-radius:5px; margin-bottom:20px;">' +
-                                '<input type="text" id="short_link_input" value="' + response.shortUrl + '" ' +
-                                'readonly style="width:100%; font-size:16px; padding:10px; text-align:center; border:1px solid #ccc; border-radius:5px;"/>' +
-                                '</div>' +
-                                '<button class="mini_button" onclick="copyToClipboard()" style="font-size:16px; padding:10px 20px;">Copiar Link</button> ' +
-                                '<span class="mini_button" onclick="window.open(\'' + response.shortUrl + '\', \'_blank\')" style="font-size:16px; padding:10px 20px;">Abrir Link</span>' +
-                                '</div>' +
-                                '<script>function copyToClipboard(){var input=document.getElementById("short_link_input");input.select();document.execCommand("copy");alert("¡Link copied to clipboard!");}</script>';
-                            self.modal.show(resultHTML);
+                            publish("modal", ["save_short", {shortUrl: response.shortUrl}]);
                         } else {
-                            self.modal.show('<div style="text-align:center; padding:40px;"><p style="color:#EA3E3E;">Error: ' + (response.error || 'Unknown error') + '</p></div>');
+                            alert("Error al guardar el modelo: " + (response.error || 'Error desconocido'));
                         }
                     } catch (e) {
-                        self.modal.show('<div style="text-align:center; padding:40px;"><p style="color:#EA3E3E;">Error processing server response</p></div>');
+                        alert("Error al procesar la respuesta del servidor");
                     }
                 } else {
-                    self.modal.show('<div style="text-align:center; padding:40px;"><p style="color:#EA3E3E;">Server error (HTTP ' + xhr.status + ')</p></div>');
+                    alert("Error del servidor (HTTP " + xhr.status + ")");
                 }
             }
         };

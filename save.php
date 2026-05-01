@@ -14,8 +14,8 @@ if (!file_exists(MODELS_DIR)) {
 }
 
 // Función para generar ID corto
-function generateShortId($length = 6) {
-    $chars = 'abcdefghijkmnopqrstuvwxyz23456789';
+function generateShortId($length = 5) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     $id = '';
     for ($i = 0; $i < $length; $i++) {
         $id .= $chars[random_int(0, strlen($chars) - 1)];
