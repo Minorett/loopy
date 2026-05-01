@@ -20,8 +20,21 @@ function Modal(loopy){
     };
     self.hide = function(){
         document.getElementById("modal_container").setAttribute("show","no");
-        if(self.currentPage.onhide) self.currentPage.onhide();
+        if(self.currentPage && self.currentPage.onhide) self.currentPage.onhide();
         self.isShowing = false;
+    };
+
+    self.showHTML = function(html, w, h){
+        // Use or create a special dynamic page
+        var page = self.pagesByID["dynamic_content"];
+        if(!page){
+            page = new Page();
+            self.addPage("dynamic_content", page);
+        }
+        page.width = w || 500;
+        page.height = h || 300;
+        page.dom.innerHTML = html;
+        self.show("dynamic_content");
     };
 
     // Close button

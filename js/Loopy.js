@@ -241,6 +241,16 @@ function Loopy(config){
     subscribe("save/short", function(){
         var modelData = self.model.serialize();
         
+        // Show loading modal
+        self.modal.showHTML(
+            '<div style="text-align:center;padding:20px;font-family:\'Figtree\',sans-serif">' +
+            '<div style="font-size:24px;font-weight:bold;margin-bottom:15px;">Generando Link...</div>' +
+            '<div style="font-size:18px;color:#666;">Por favor espera</div>' +
+            '</div>',
+            400,
+            150
+        );
+        
         // Send to save.php
         var xhr = new XMLHttpRequest();
         xhr.open('POST', 'save.php?action=save', true);
@@ -252,15 +262,47 @@ function Loopy(config){
                     try {
                         var response = JSON.parse(xhr.responseText);
                         if (response.success && response.shortUrl) {
-                            publish("modal", ["save_short", {shortUrl: response.shortUrl}]);
+                            self.modal.showHTML(
+                                '<div style="text-align:center;padding:20px;font-family:\'Figtree\',sans-serif">' +
+                                '<div style="font-size:22px;font-weight:bold;margin-bottom:20px;">¡Link Generado!</div>' +
+                                '<div style="font-size:20px;margin-bottom:20px;word-break:break-all;color:#333;">' + response.shortUrl + '</div>' +
+                                '<button onclick="copyToClipboard(\'' + response.shortUrl + '\');this.innerHTML=\'¡Copiado!\';this.style.backgroundColor=\'#4CAF50\'" style="padding:12px 24px;font-size:16px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;">Copiar al portapapeles</button>' +
+                                '</div>',
+                                450,
+                                220
+                            );
                         } else {
-                            alert("Error al guardar el modelo: " + (response.error || 'Error desconocido'));
+                            self.modal.showHTML(
+                                '<div style="text-align:center;padding:20px;font-family:\'Figtree\',sans-serif">' +
+                                '<div style="font-size:22px;font-weight:bold;margin-bottom:20px;color:#d32f2f;">Error</div>' +
+                                '<div style="font-size:16px;color:#666;margin-bottom:20px;">' + (response.error || 'Error desconocido') + '</div>' +
+                                '<button onclick="loopy.modal.hide()" style="padding:12px 24px;font-size:16px;cursor:pointer;background:#666;color:white;border:none;border-radius:6px;">Cerrar</button>' +
+                                '</div>',
+                                400,
+                                180
+                            );
                         }
                     } catch (e) {
-                        alert("Error al procesar la respuesta del servidor");
+                        self.modal.showHTML(
+                            '<div style="text-align:center;padding:20px;font-family:\'Figtree\',sans-serif">' +
+                            '<div style="font-size:22px;font-weight:bold;margin-bottom:20px;color:#d32f2f;">Error</div>' +
+                            '<div style="font-size:16px;color:#666;margin-bottom:20px;">Error al procesar la respuesta del servidor</div>' +
+                            '<button onclick="loopy.modal.hide()" style="padding:12px 24px;font-size:16px;cursor:pointer;background:#666;color:white;border:none;border-radius:6px;">Cerrar</button>' +
+                            '</div>',
+                            400,
+                            180
+                        );
                     }
                 } else {
-                    alert("Error del servidor (HTTP " + xhr.status + ")");
+                    self.modal.showHTML(
+                        '<div style="text-align:center;padding:20px;font-family:\'Figtree\',sans-serif">' +
+                        '<div style="font-size:22px;font-weight:bold;margin-bottom:20px;color:#d32f2f;">Error</div>' +
+                        '<div style="font-size:16px;color:#666;margin-bottom:20px;">Error del servidor (HTTP ' + xhr.status + ')</div>' +
+                        '<button onclick="loopy.modal.hide()" style="padding:12px 24px;font-size:16px;cursor:pointer;background:#666;color:white;border:none;border-radius:6px;">Cerrar</button>' +
+                        '</div>',
+                        400,
+                        180
+                    );
                 }
             }
         };
