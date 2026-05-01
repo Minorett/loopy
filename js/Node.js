@@ -192,7 +192,7 @@ function Node(model, config){
         ctx.translate(x,y+_offset);
 
         // CENTRALITY HALO
-        if(self.loopy.showCentrality){
+        if(self.loopy.showCentrality && self.centrality >= self.model.centralityThreshold && self.centrality > 0){
             var ratio = 0;
             if(self.model.maxCentrality > 0){
                 ratio = self.centrality / self.model.maxCentrality;

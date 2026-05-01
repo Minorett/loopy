@@ -320,18 +320,36 @@ function _wrapText(ctx, text, maxWidth) {
     var paragraphs = text.split("\n");
     for (var i = 0; i < paragraphs.length; i++) {
         var words = paragraphs[i].split(" ");
-        var currentLine = words[0];
-        for (var j = 1; j < words.length; j++) {
+        var currentLine = "";
+        for (var j = 0; j < words.length; j++) {
             var word = words[j];
-            var width = ctx.measureText(currentLine + " " + word).width;
-            if (width < maxWidth) {
-                currentLine += " " + word;
+            if (word === "" && words.length > 1) continue; 
+
+            var testLine = currentLine === "" ? word : currentLine + " " + word;
+            if (ctx.measureText(testLine).width <= maxWidth) {
+                currentLine = testLine;
             } else {
-                lines.push(currentLine);
-                currentLine = word;
+                if (currentLine !== "") lines.push(currentLine);
+                
+                // If the word itself is too long for one line
+                if (ctx.measureText(word).width > maxWidth) {
+                    var chars = word.split("");
+                    var part = "";
+                    for (var k = 0; k < chars.length; k++) {
+                        if (ctx.measureText(part + chars[k]).width <= maxWidth) {
+                            part += chars[k];
+                        } else {
+                            if(part!="") lines.push(part);
+                            part = chars[k];
+                        }
+                    }
+                    currentLine = part;
+                } else {
+                    currentLine = word;
+                }
             }
         }
-        lines.push(currentLine);
+        if (currentLine !== "") lines.push(currentLine);
     }
     return lines;
 }

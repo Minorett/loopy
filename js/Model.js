@@ -502,6 +502,7 @@ function Model(loopy){
         };
 
         self.maxCentrality = 0;
+        self.centralityThreshold = 0;
         self.calculateCentrality = function(){
 
             // Reset node scores
@@ -519,13 +520,24 @@ function Model(loopy){
             }
 
             // Find max centrality
+            var scores = [];
             for(var i=0; i<self.nodes.length; i++){
-                if(self.nodes[i].centrality > maxCentrality){
-                    maxCentrality = self.nodes[i].centrality;
+                var c = self.nodes[i].centrality;
+                scores.push(c);
+                if(c > maxCentrality){
+                    maxCentrality = c;
                 }
             }
-
             self.maxCentrality = maxCentrality;
+
+            // Find 80th percentile threshold
+            if(scores.length > 0){
+                scores.sort(function(a,b){ return a-b; });
+                var index = Math.floor(scores.length * 0.8);
+                self.centralityThreshold = scores[index];
+            } else {
+                self.centralityThreshold = 0;
+            }
 
         };
 

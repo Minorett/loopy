@@ -141,7 +141,9 @@ function Edge(model, config){
 
             // Signal's direction & size
             var size = 40; // HARD-CODED
-            ctx.scale(signal.scaleX, signal.scaleY);
+            var sX = Math.max(0.5, Math.min(1.5, signal.scaleX));
+            var sY = Math.max(0.5, Math.min(1.5, Math.abs(signal.scaleY))) * (signal.scaleY < 0 ? -1 : 1);
+            ctx.scale(sX, sY);
             ctx.scale(size, size);
 
             // Signal's COLOR, BLENDING
@@ -374,11 +376,13 @@ function Edge(model, config){
         }
 
         // Arc it!
+        var headSize = 10 + 10 * Math.abs(self.strength); // move this up
+        var endAngleOffset = (headSize*0.9) / r;
         ctx.beginPath();
         if(self.arc>0){
-            ctx.arc(w/2, y2, r, startAngle, end, false);
+            ctx.arc(w/2, y2, r, startAngle, end - endAngleOffset, false);
         }else{
-            ctx.arc(w/2, y2, r, -startAngle, end, true);
+            ctx.arc(w/2, y2, r, -startAngle, end + endAngleOffset, true);
         }
         ctx.stroke();
 
@@ -389,7 +393,7 @@ function Edge(model, config){
         ctx.rotate(aa);
 
         // Arrow Head Size
-        var headSize = 10 + 10 * Math.abs(self.strength);
+        // var headSize = 10 + 10 * Math.abs(self.strength); // already moved up
         ctx.beginPath();
         ctx.moveTo(-headSize, -headSize);
         ctx.lineTo(0,0);
