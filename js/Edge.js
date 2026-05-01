@@ -141,8 +141,8 @@ function Edge(model, config){
 
             // Signal's direction & size
             var size = 40; // HARD-CODED
-            var sX = Math.max(0.5, Math.min(1.5, signal.scaleX));
-            var sY = Math.max(0.5, Math.min(1.5, Math.abs(signal.scaleY))) * (signal.scaleY < 0 ? -1 : 1);
+            var sX = Math.max(0.5, Math.min(1.25, signal.scaleX));
+            var sY = Math.max(0.5, Math.min(1.25, Math.abs(signal.scaleY))) * (signal.scaleY < 0 ? -1 : 1);
             ctx.scale(sX, sY);
             ctx.scale(size, size);
 
@@ -377,7 +377,7 @@ function Edge(model, config){
 
         // Arc it!
         var headSize = 10 + 10 * Math.abs(self.strength); // move this up
-        var endAngleOffset = (headSize*0.9) / r;
+        var endAngleOffset = (headSize*1.0) / r;
         ctx.beginPath();
         if(self.arc>0){
             ctx.arc(w/2, y2, r, startAngle, end - endAngleOffset, false);

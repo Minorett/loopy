@@ -351,11 +351,21 @@ function ComponentSlider(config){
 
     // DOM: label + slider
     self.dom = document.createElement("div");
-    var label = _createLabel(config.label);
+    var labelText = config.label;
+    var label = _createLabel(labelText);
     self.dom.appendChild(label);
     var sliderDOM = document.createElement("div");
     sliderDOM.setAttribute("class","component_slider");
     self.dom.appendChild(sliderDOM);
+
+    // Update Label
+    var updateLabel = function(){
+        if(config.bg === "strength"){
+            var value = self.getValue();
+            var sign = (value > 0) ? "+" : "";
+            label.innerHTML = labelText + " " + sign + value.toFixed(1);
+        }
+    };
 
     // Slider DOM: graphic + pointer
     var slider = new Image();
@@ -404,12 +414,16 @@ function ComponentSlider(config){
         // Move pointer there.
         movePointer();
 
+        // Update label
+        updateLabel();
+
     };
     _addMouseEvents(slider, onmousedown, onmousemove, onmouseup);
 
     // Show
     self.show = function(){
         movePointer();
+        updateLabel();
     };
 
     // BG Color!
