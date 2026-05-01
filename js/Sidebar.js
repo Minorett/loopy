@@ -13,6 +13,7 @@ function Sidebar(loopy){
     self.edit = function(object){
         self.showPage(object._CLASS_);
         self.currentPage.edit(object);
+        publish("sidebar/show");
     };
 
     // Go back to main when the thing you're editing is killed

@@ -7,6 +7,7 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="favicon.png">
 
     <!-- Google Fonts - Figtree -->
@@ -84,6 +85,11 @@
         <img src="https://img.icons8.com/material-outlined/24/ffffff/grid.png" alt="Grilla" style="width:24px;height:24px;">
     </button>
 
+    <!-- Sidebar Toggle Button -->
+    <button id="sidebar-toggle" title="Alternar Menú">
+        <img src="https://img.icons8.com/material-outlined/24/ffffff/menu--v1.png" alt="Menú" style="width:24px;height:24px;">
+    </button>
+
     <!-- The Tools' UI -->
     <div id="toolbar"></div>
     <div id="playbar"></div>
@@ -147,5 +153,21 @@ window.onload = function(){
             gridOverlay.classList.add('show');
         }
     };
+
+    // Sidebar toggle logic
+    var sidebarToggle = document.getElementById('sidebar-toggle');
+    var sidebar = document.getElementById('sidebar');
+    sidebarToggle.onclick = function() {
+        if (sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+        } else {
+            sidebar.classList.add('show');
+        }
+    };
+
+    // Auto-show sidebar when editing
+    subscribe("sidebar/show", function() {
+        sidebar.classList.add('show');
+    });
 };
 </script>
