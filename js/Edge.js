@@ -140,7 +140,7 @@ function Edge(model, config){
             ctx.rotate(-a);
 
             // Signal's direction & size
-            var size = 40; // HARD-CODED
+            var size = 20; // HARD-CODED
             var sX = 1.0; // Constant scale
             var sY = 1.0 * (signal.scaleY < 0 ? -1 : 1);
             ctx.scale(sX, sY);
