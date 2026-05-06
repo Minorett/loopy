@@ -92,6 +92,11 @@
         <img src="https://img.icons8.com/material-outlined/24/ffffff/menu--v1.png" alt="Menú" style="width:24px;height:24px;">
     </button>
 
+    <!-- Recenter Button -->
+    <button id="recenter-button" title="Centrar Vista">
+        <img src="https://img.icons8.com/material-outlined/24/ffffff/center-focus-strong.png" alt="Centrar" style="width:24px;height:24px;">
+    </button>
+
     <!-- The Tools' UI -->
     <div id="toolbar"></div>
     <div id="playbar"></div>
@@ -165,6 +170,13 @@ window.onload = function(){
         } else {
             sidebar.classList.add('show');
         }
+    };
+
+    // Recenter button logic
+    var recenterButton = document.getElementById('recenter-button');
+    recenterButton.onclick = function() {
+        window.loopy.model.center(true);
+        publish("resize");
     };
 
     // Auto-show sidebar when editing

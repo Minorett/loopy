@@ -436,6 +436,29 @@ MODAL
     background: #444;
 }
 
+#recenter-button {
+    position: fixed;
+    bottom: 260px; /* Above the grid toggle button */
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #222;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+    z-index: 1000;
+}
+
+#recenter-button:hover {
+    background: #444;
+}
+
 @media (max-width: 768px) {
     #canvasses {
         width: 100% !important;
@@ -514,6 +537,12 @@ MODAL
     
     #grid-toggle {
         bottom: 20px;
+        right: auto;
+        left: 20px;
+    }
+
+    #recenter-button {
+        bottom: 80px;
         right: auto;
         left: 20px;
     }
