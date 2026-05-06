@@ -185,17 +185,17 @@ window.onload = function(){
         var zoomFactor = delta > 0 ? 0.9 : 1.1;
         var newScale = loopyInstance.offsetScale * zoomFactor;
         newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-        
-        // Zoom toward mouse position
+
+        // Zoom toward center of drawing area
         var rect = canvasses.getBoundingClientRect();
-        var mouseX = e.clientX - rect.left;
-        var mouseY = e.clientY - rect.top;
-        
+        var centerX = rect.width / 2;
+        var centerY = rect.height / 2;
+
         var scaleChange = newScale / loopyInstance.offsetScale;
-        loopyInstance.offsetX = mouseX - (mouseX - loopyInstance.offsetX) * scaleChange;
-        loopyInstance.offsetY = mouseY - (mouseY - loopyInstance.offsetY) * scaleChange;
+        loopyInstance.offsetX = centerX - (centerX - loopyInstance.offsetX) * scaleChange;
+        loopyInstance.offsetY = centerY - (centerY - loopyInstance.offsetY) * scaleChange;
         loopyInstance.offsetScale = newScale;
-        
+
         publish("resize");
     }, { passive: false });
 
