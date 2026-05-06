@@ -281,82 +281,9 @@ function Modal(loopy){
             height: 350
         }))
         self.addPage("save_gif", page);
-    })();
+        })();
 
-    // Save as short link
-    (function(){
-        var page = new Page();
-        page.width = 500;
-        page.height = 250;
-
-        var container = document.createElement("div");
-        container.style.fontFamily = "'Figtree', sans-serif";
-        container.style.textAlign = "center";
-        container.style.padding = "20px";
-        container.style.display = "flex";
-        container.style.flexDirection = "column";
-        container.style.alignItems = "center";
-        container.style.justifyContent = "center";
-        page.dom.appendChild(container);
-
-        var title = document.createElement("div");
-        title.style.fontSize = "26px";
-        title.style.fontWeight = "bold";
-        title.style.marginBottom = "25px";
-        title.style.color = "#222";
-        title.innerHTML = "Generar Link Corto";
-        container.appendChild(title);
-
-        var output = page.addComponent(new ComponentOutput({}));
-        output.dom.style.width = "100%";
-        output.dom.style.fontSize = "20px";
-        output.dom.style.padding = "15px";
-        output.dom.style.marginBottom = "25px";
-        output.dom.style.textAlign = "center";
-        output.dom.style.backgroundColor = "#f8f9fa";
-        output.dom.style.border = "2px solid #e9ecef";
-        output.dom.style.borderRadius = "10px";
-        output.dom.style.color = "#495057";
-        container.appendChild(output.dom);
-
-        var buttonContainer = document.createElement("div");
-        buttonContainer.style.display = "flex";
-        buttonContainer.style.gap = "10px";
-        container.appendChild(buttonContainer);
-
-        var copyBtn = _createButton("Copiar al portapapeles", function(){
-            output.dom.select();
-            document.execCommand("copy");
-            var oldText = copyBtn.innerHTML;
-            copyBtn.innerHTML = "¡Copiado!";
-            copyBtn.style.backgroundColor = "#4CAF50";
-            setTimeout(function(){
-                copyBtn.innerHTML = oldText;
-                copyBtn.style.backgroundColor = "";
-            }, 2000);
-        });
-        copyBtn.style.padding = "10px 20px";
-        copyBtn.style.fontSize = "16px";
-        buttonContainer.appendChild(copyBtn);
-
-        var closeBtn = _createButton("Cerrar", function(){
-            self.hide();
-        });
-        closeBtn.style.padding = "10px 20px";
-        closeBtn.style.fontSize = "16px";
-        closeBtn.style.backgroundColor = "#666";
-        buttonContainer.appendChild(closeBtn);
-
-        page.onshow = function(data){
-            if(data && data.shortUrl){
-                output.output(data.shortUrl);
-            }
-        };
-
-        self.addPage("save_short", page);
-    })();
-
-}
+        }
 
 function ModalIframe(config){
 
