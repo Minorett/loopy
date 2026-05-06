@@ -364,11 +364,6 @@ MODAL
 
 /* Mobile responsive grid */
 @media (max-width: 768px) {
-    #grid-overlay {
-        width: min(85%, 400px);
-        height: min(70%, 400px);
-    }
-    
     .grid-cell {
         font-size: clamp(8px, 3vw, 16px);
         padding: 5px;
@@ -376,12 +371,6 @@ MODAL
 }
 
 @media (max-width: 480px) {
-    #grid-overlay {
-        width: 90%;
-        height: auto;
-        aspect-ratio: 1 / 1;
-    }
-    
     .grid-cell {
         font-size: clamp(7px, 2.5vw, 12px);
         padding: 4px;

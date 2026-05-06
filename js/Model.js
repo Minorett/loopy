@@ -179,7 +179,10 @@ function Model(loopy){
     });
 
     // OR RESIZE or RESET
-
+    subscribe("resize", function(){
+        _canvasDirty = true;
+        drawCountdown = drawCountdownFull;
+    });
     subscribe("model/reset",function(){ drawCountdown=drawCountdownFull; });
     subscribe("loopy/mode",function(){
         if(loopy.mode==Loopy.MODE_PLAY){
@@ -214,24 +217,9 @@ function Model(loopy){
         // Translate
         ctx.save();
 
-        // Translate to center, (translate, scale, translate) to expand to size
-        var canvasses = document.getElementById("canvasses");
-        var CW = canvasses.clientWidth - _PADDING - _PADDING;
-        var CH = canvasses.clientHeight - _PADDING_BOTTOM - _PADDING;
-        var tx = loopy.offsetX*2;
-        var ty = loopy.offsetY*2;
-        tx -= CW+_PADDING;
-        ty -= CH+_PADDING;
+        // Simple transform
         var s = loopy.offsetScale;
-        tx = s*tx;
-        ty = s*ty;
-        tx += CW+_PADDING;
-        ty += CH+_PADDING;
-        if(loopy.embedded){
-            tx += _PADDING; // dunno why but this is needed
-            ty += _PADDING; // dunno why but this is needed
-        }
-        ctx.setTransform(s, 0, 0, s, tx, ty);
+        ctx.setTransform(s, 0, 0, s, loopy.offsetX*2, loopy.offsetY*2);
 
         // Draw labels THEN edges THEN nodes
         for(var i=0;i<self.labels.length;i++) self.labels[i].draw(ctx);
@@ -555,35 +543,24 @@ function Model(loopy){
 
         // Re-center!
         var canvasses = document.getElementById("canvasses");
-        var fitWidth = canvasses.clientWidth - _PADDING - _PADDING;
-        var fitHeight = canvasses.clientHeight - _PADDING_BOTTOM - _PADDING;
+        var sw = canvasses.clientWidth;
+        var sh = canvasses.clientHeight;
+
         var cx = (left+right)/2;
         var cy = (top+bottom)/2;
-        loopy.offsetX = (_PADDING+fitWidth)/2 - cx;
-        loopy.offsetY = (_PADDING+fitHeight)/2 - cy;
 
         // SCALE.
         if(andScale){
-
             var w = right-left;
             var h = bottom-top;
-
-            // Wider or taller than screen?
-            var modelRatio = w/h;
-            var screenRatio = fitWidth/fitHeight;
-            var scaleRatio;
-            if(modelRatio > screenRatio){
-                // wider...
-                scaleRatio = fitWidth/w;
-            }else{
-                // taller...
-                scaleRatio = fitHeight/h;
-            }
-
-            // Loopy, then!
+            var fitWidth = sw - _PADDING*4;
+            var fitHeight = sh - _PADDING*4;
+            var scaleRatio = Math.min(fitWidth/w, fitHeight/h);
             loopy.offsetScale = scaleRatio;
-
         }
+
+        loopy.offsetX = sw/2 - cx*loopy.offsetScale;
+        loopy.offsetY = sh/2 - cy*loopy.offsetScale;
 
     };
 

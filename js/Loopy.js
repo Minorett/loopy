@@ -174,26 +174,19 @@ function Loopy(config){
         tempCtx.fillStyle = "#fff";
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         
-        // 2. Draw the model (and ink) with current transform
-        tempCtx.save();
-        tempCtx.translate(self.offsetX, self.offsetY);
-        tempCtx.scale(self.offsetScale, self.offsetScale);
+        // 2. Draw the model (and ink)
+        // They already have the transform applied in their own draw methods
         tempCtx.drawImage(modelCanvas, 0, 0);
         tempCtx.drawImage(inkCanvas, 0, 0);
-        tempCtx.restore();
 
         // 3. Draw the analysis grid if it's visible
         var gridOverlay = document.getElementById('grid-overlay');
         if (gridOverlay && gridOverlay.classList.contains('show')) {
-            // Get the grid's actual bounds from its computed style
-            var gridRect = gridOverlay.getBoundingClientRect();
-            var canvassesRect = canvasses.getBoundingClientRect();
-            
-            // Calculate grid position relative to canvas
-            var gridLeft = (gridRect.left - canvassesRect.left);
-            var gridTop = (gridRect.top - canvassesRect.top);
-            var gridWidth = gridRect.width;
-            var gridHeight = gridRect.height;
+            // Grid covers the whole canvas
+            var gridLeft = 0;
+            var gridTop = 0;
+            var gridWidth = tempCanvas.width;
+            var gridHeight = tempCanvas.height;
             
             var cellWidth = gridWidth / 3;
             var cellHeight = gridHeight / 3;
@@ -229,9 +222,7 @@ function Loopy(config){
             tempCtx.setLineDash([]);
             
             // Calculate font size that scales with grid cell
-            var fontSize = Math.min(cellWidth, cellHeight) * 0.22;
-            fontSize = Math.max(fontSize, 10); // Minimum readable size
-            fontSize = Math.min(fontSize, 24); // Maximum to avoid huge labels
+            var fontSize = 48; // Legible on retina
             
             // Draw labels
             tempCtx.font = "bold " + fontSize + "px 'Figtree', sans-serif";
@@ -448,42 +439,8 @@ function Loopy(config){
         }
 
     }else{
-
         // Center all the nodes & labels
-
-        // If no nodes & no labels, forget it.
-        if(self.model.nodes.length>0 || self.model.labels.length>0){
-
-            // Get bounds of ALL objects...
-            var bounds = self.model.getBounds();
-            var left = bounds.left;
-            var top = bounds.top;
-            var right = bounds.right;
-            var bottom = bounds.bottom;
-
-            // Re-center!
-            var canvasses = document.getElementById("canvasses");
-            var cx = (left+right)/2;
-            var cy = (top+bottom)/2;
-            var offsetX = (canvasses.clientWidth+50)/2 - cx;
-            var offsetY = (canvasses.clientHeight-80)/2 - cy;
-
-            // MOVE ALL NODES
-            for(var i=0;i<self.model.nodes.length;i++){
-                var node = self.model.nodes[i];
-                node.x += offsetX;
-                node.y += offsetY;
-            }
-
-            // MOVE ALL LABELS
-            for(var i=0;i<self.model.labels.length;i++){
-                var label = self.model.labels[i];
-                label.x += offsetX;
-                label.y += offsetY;
-            }
-
-        }
-
+        self.model.center();
     }
 
     // NOT DIRTY, THANKS
