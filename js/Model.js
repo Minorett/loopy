@@ -215,23 +215,70 @@ function Model(loopy){
         ctx.save();
 
         // Translate to center, (translate, scale, translate) to expand to size
-        var canvasses = document.getElementById("canvasses");
-        var CW = canvasses.clientWidth - _PADDING - _PADDING;
-        var CH = canvasses.clientHeight - _PADDING_BOTTOM - _PADDING;
-        var tx = loopy.offsetX*2;
-        var ty = loopy.offsetY*2;
-        tx -= CW+_PADDING;
-        ty -= CH+_PADDING;
         var s = loopy.offsetScale;
-        tx = s*tx;
-        ty = s*ty;
-        tx += CW+_PADDING;
-        ty += CH+_PADDING;
-        if(loopy.embedded){
-            tx += _PADDING; // dunno why but this is needed
-            ty += _PADDING; // dunno why but this is needed
-        }
+        var tx = loopy.offsetX * 2;
+        var ty = loopy.offsetY * 2;
+
         ctx.setTransform(s, 0, 0, s, tx, ty);
+
+        // Draw grid?
+        var gridOverlay = document.getElementById('grid-overlay');
+        if (gridOverlay && gridOverlay.classList.contains('show')) {
+            ctx.save();
+            
+            // Grid size - use a large fixed size for world coordinates
+            var worldWidth = 3000;
+            var worldHeight = 3000;
+            var startX = -1000;
+            var startY = -1000;
+            
+            var cellWidth = worldWidth / 3;
+            var cellHeight = worldHeight / 3;
+            
+            // Grid labels
+            var gridLabels = [
+                'Atención', 'Cognición', 'Self',
+                'Afecto', 'Conducta', 'Motivación',
+                'Biofisiológico', 'Contexto', 'Sociocultural'
+            ];
+            
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(204, 204, 204, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+            
+            for (var i = 0; i <= 3; i++) {
+                // Vertical lines
+                ctx.beginPath();
+                ctx.moveTo(startX + i * cellWidth, startY);
+                ctx.lineTo(startX + i * cellWidth, startY + worldHeight);
+                ctx.stroke();
+                
+                // Horizontal lines
+                ctx.beginPath();
+                ctx.moveTo(startX, startY + i * cellHeight);
+                ctx.lineTo(startX + worldWidth, startY + i * cellHeight);
+                ctx.stroke();
+            }
+            
+            ctx.setLineDash([]);
+            
+            // Draw labels
+            ctx.font = "bold 40px 'Figtree', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "rgba(136, 136, 136, 0.3)";
+            
+            for (var row = 0; row < 3; row++) {
+                for (var col = 0; col < 3; col++) {
+                    var label = gridLabels[row * 3 + col];
+                    var x = startX + cellWidth * col + cellWidth / 2;
+                    var y = startY + cellHeight * row + cellHeight / 2;
+                    ctx.fillText(label, x, y);
+                }
+            }
+            ctx.restore();
+        }
 
         // Draw labels THEN edges THEN nodes
         for(var i=0;i<self.labels.length;i++) self.labels[i].draw(ctx);

@@ -173,61 +173,7 @@ function Loopy(config){
         tempCtx.drawImage(modelCanvas, 0, 0);
         tempCtx.drawImage(inkCanvas, 0, 0);
 
-        // 3. Draw the analysis grid if it's visible
-        var gridOverlay = document.getElementById('grid-overlay');
-        if (gridOverlay && gridOverlay.classList.contains('show')) {
-            var canvasWidth = tempCanvas.width;
-            var canvasHeight = tempCanvas.height;
-            var cellWidth = canvasWidth / 3;
-            var cellHeight = canvasHeight / 3;
-            
-            // Grid labels based on the HTML structure
-            var gridLabels = [
-                'Atención', 'Cognición', 'Self',
-                'Afecto', 'Conducta', 'Motivación',
-                'Biofisiológico', 'Contexto', 'Sociocultural'
-            ];
-            
-            // Draw grid lines
-            tempCtx.strokeStyle = '#cccccc';
-            tempCtx.lineWidth = 1;
-            tempCtx.setLineDash([5, 5]);
-            
-            // Vertical lines
-            for (var i = 1; i < 3; i++) {
-                tempCtx.beginPath();
-                tempCtx.moveTo(i * cellWidth, 0);
-                tempCtx.lineTo(i * cellWidth, canvasHeight);
-                tempCtx.stroke();
-            }
-            
-            // Horizontal lines
-            for (var i = 1; i < 3; i++) {
-                tempCtx.beginPath();
-                tempCtx.moveTo(0, i * cellHeight);
-                tempCtx.lineTo(canvasWidth, i * cellHeight);
-                tempCtx.stroke();
-            }
-            
-            tempCtx.setLineDash([]);
-            
-            // Draw labels
-            tempCtx.font = "bold 24px 'Figtree', sans-serif";
-            tempCtx.textAlign = "center";
-            tempCtx.textBaseline = "middle";
-            tempCtx.fillStyle = "rgba(136, 136, 136, 0.5)";
-            
-            for (var row = 0; row < 3; row++) {
-                for (var col = 0; col < 3; col++) {
-                    var label = gridLabels[row * 3 + col];
-                    var x = cellWidth * col + cellWidth / 2;
-                    var y = cellHeight * row + cellHeight / 2;
-                    tempCtx.fillText(label, x, y);
-                }
-            }
-        }
-
-        // 4. Trigger download
+        // 3. Trigger download
         var link = document.createElement('a');
         link.setAttribute('download', "system_model.png");
         link.setAttribute('href', tempCanvas.toDataURL("image/png"));
