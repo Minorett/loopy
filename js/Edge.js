@@ -140,7 +140,7 @@ function Edge(model, config){
             ctx.rotate(-a);
 
             // Signal's direction & size
-            var size = 30;
+            var size = 23;
             var sX = signal.direction >= 0 ? 1.0 : -1.0;
             var sY = signal.direction >= 0 ? 1.0 : -1.0;
             ctx.scale(sX, sY);
