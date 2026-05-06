@@ -391,30 +391,37 @@ function ComponentSlider(config){
     sliderDOM.appendChild(pointer);
 
     // Native Slider
-    var nativeSlider = _createInput("component_slider_native");
-    nativeSlider.type = "range";
-    nativeSlider.min = 0;
-    nativeSlider.max = config.options.length - 1;
-    nativeSlider.step = 1;
-    self.dom.appendChild(nativeSlider);
+    var nativeSlider;
+    if(config.bg === "strength"){
+        nativeSlider = _createInput("component_slider_native");
+        nativeSlider.type = "range";
+        nativeSlider.min = 0;
+        nativeSlider.max = config.options.length - 1;
+        nativeSlider.step = 1;
+        self.dom.appendChild(nativeSlider);
+    } else {
+        slider.style.cursor = "default";
+    }
 
     var movePointer = function(){
         var value = self.getValue();
         var optionIndex = config.options.indexOf(value);
         var x = (optionIndex+0.5) * (250/config.options.length);
         pointer.style.left = (x-7.5)+"px";
-        nativeSlider.value = optionIndex;
+        if(nativeSlider) nativeSlider.value = optionIndex;
     };
 
     // Native Slider Input
-    nativeSlider.oninput = function(){
-        var optionIndex = parseInt(nativeSlider.value);
-        var option = config.options[optionIndex];
-        self.setValue(option);
-        if(config.oninput) config.oninput(option);
-        movePointer();
-        updateLabel();
-    };
+    if(nativeSlider){
+        nativeSlider.oninput = function(){
+            var optionIndex = parseInt(nativeSlider.value);
+            var option = config.options[optionIndex];
+            self.setValue(option);
+            if(config.oninput) config.oninput(option);
+            movePointer();
+            updateLabel();
+        };
+    }
 
     // On click... (or on drag)
     var isDragging = false;
