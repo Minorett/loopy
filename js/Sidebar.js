@@ -355,6 +355,15 @@ function ComponentSlider(config){
     var labelText = config.label;
     var label = _createLabel(labelText);
     self.dom.appendChild(label);
+
+    // Polarity Indicators
+    if(config.bg === "strength"){
+        var indicators = document.createElement("div");
+        indicators.setAttribute("class", "component_slider_indicators");
+        indicators.innerHTML = "<span>(+)</span><span>(-)</span>";
+        self.dom.appendChild(indicators);
+    }
+
     var sliderDOM = document.createElement("div");
     sliderDOM.setAttribute("class","component_slider");
     self.dom.appendChild(sliderDOM);
@@ -379,11 +388,31 @@ function ComponentSlider(config){
     pointer.setAttribute("class","component_slider_pointer");
     sliderDOM.appendChild(slider);
     sliderDOM.appendChild(pointer);
+
+    // Native Slider
+    var nativeSlider = _createInput("component_slider_native");
+    nativeSlider.type = "range";
+    nativeSlider.min = 0;
+    nativeSlider.max = config.options.length - 1;
+    nativeSlider.step = 1;
+    self.dom.appendChild(nativeSlider);
+
     var movePointer = function(){
         var value = self.getValue();
         var optionIndex = config.options.indexOf(value);
         var x = (optionIndex+0.5) * (250/config.options.length);
         pointer.style.left = (x-7.5)+"px";
+        nativeSlider.value = optionIndex;
+    };
+
+    // Native Slider Input
+    nativeSlider.oninput = function(){
+        var optionIndex = parseInt(nativeSlider.value);
+        var option = config.options[optionIndex];
+        self.setValue(option);
+        if(config.oninput) config.oninput(option);
+        movePointer();
+        updateLabel();
     };
 
     // On click... (or on drag)
