@@ -195,6 +195,7 @@ window.onload = function(){
         loopyInstance.offsetX = centerX - (centerX - loopyInstance.offsetX) * scaleChange;
         loopyInstance.offsetY = centerY - (centerY - loopyInstance.offsetY) * scaleChange;
         loopyInstance.offsetScale = newScale;
+        console.log("Zoom Scale:", loopyInstance.offsetScale);
 
         publish("resize");
     }, { passive: false });
@@ -248,6 +249,7 @@ window.onload = function(){
             loopyInstance.offsetX = touchCenterX - (touchCenterX - loopyInstance.offsetX) * scaleChange;
             loopyInstance.offsetY = touchCenterY - (touchCenterY - loopyInstance.offsetY) * scaleChange;
             loopyInstance.offsetScale = newScale;
+            console.log("Zoom Scale:", loopyInstance.offsetScale);
             
             publish("resize");
             }

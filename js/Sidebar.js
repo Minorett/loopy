@@ -106,8 +106,9 @@ function Sidebar(loopy){
             }
         }));
         page.addComponent(new ComponentHTML({
-            html: "(para aumentar la fuerza o intensidad de la interacción entre elementos, dibujá más flechas!)<br><br>"+
-            "(para crear interacciones con retraso o latencia, dibujá flechas más largas!)"
+            html: "Tip de Análisis:<br><br>"+
+            "<b>Intensidad:</b> Usá el deslizador para ajustar la fuerza exacta. El lado (+) fortalece la relación, el lado (-) la debilita.<br><br>"+
+            "<b>Latencia:</b> La longitud de la flecha determina el retraso; cuanto más larga sea, más tardará la señal en llegar."
         }));
         page.addComponent(new ComponentButton({
             //label: "Eliminar interacción",
