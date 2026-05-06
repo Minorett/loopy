@@ -27,17 +27,29 @@ function Modal(loopy){
         self.isShowing = false;
     };
 
-    self.showHTML = function(html, w, h){
-        // Use or create a special dynamic page
-        var page = self.pagesByID["dynamic_content"];
-        if(!page){
+    self.showHTML = function(html, w, h) {
+        var page = null;
+        for (var i = 0; i < self.pages.length; i++) {
+            if (self.pages[i].id === "dynamic_content") {
+                page = self.pages[i];
+                break;
+            }
+        }
+        if (!page) {
             page = new Page();
             self.addPage("dynamic_content", page);
         }
-        page.width = w || 500;
-        page.height = h || 300;
+        page.width  = w || 500;
+        page.height = h || 320;
         page.dom.innerHTML = html;
-        self.show("dynamic_content");
+
+        var dom = document.getElementById("modal");
+        if (dom) {
+            dom.style.width  = page.width  + "px";
+            dom.style.height = page.height + "px";
+        }
+        self.showPage("dynamic_content");
+        self.show();
     };
 
     // Close button
