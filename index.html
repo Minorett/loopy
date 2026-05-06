@@ -169,5 +169,102 @@ window.onload = function(){
     subscribe("sidebar/show", function() {
         sidebar.classList.add('show');
     });
+
+    // Smooth Zoom System
+    var canvasses = document.getElementById('canvasses');
+    var loopyInstance = window.loopy;
+    var MIN_SCALE = 0.2;
+    var MAX_SCALE = 5.0;
+
+    // Scroll wheel zoom (PC)
+    canvasses.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        var delta = e.deltaY || e.detail || -e.wheelDelta;
+        var zoomFactor = delta > 0 ? 0.9 : 1.1;
+        var newScale = loopyInstance.offsetScale * zoomFactor;
+        newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+        
+        // Zoom toward mouse position
+        var rect = canvasses.getBoundingClientRect();
+        var mouseX = e.clientX - rect.left;
+        var mouseY = e.clientY - rect.top;
+        
+        var scaleChange = newScale / loopyInstance.offsetScale;
+        loopyInstance.offsetX = mouseX - (mouseX - loopyInstance.offsetX) * scaleChange;
+        loopyInstance.offsetY = mouseY - (mouseY - loopyInstance.offsetY) * scaleChange;
+        loopyInstance.offsetScale = newScale;
+        
+        publish("resize");
+    }, { passive: false });
+
+    // Pinch-to-zoom (Mobile)
+    var lastTouchDistance = 0;
+    var initialPinchScale = 1;
+    var pinchCenterX = 0;
+    var pinchCenterY = 0;
+
+    function getTouchDistance(touch1, touch2) {
+        var dx = touch1.clientX - touch2.clientX;
+        var dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function getTouchCenter(touch1, touch2) {
+        return {
+            x: (touch1.clientX + touch2.clientX) / 2,
+            y: (touch1.clientY + touch2.clientY) / 2
+        };
+    }
+
+    canvasses.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            lastTouchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+            initialPinchScale = loopyInstance.offsetScale;
+            var center = getTouchCenter(e.touches[0], e.touches[1]);
+            var rect = canvasses.getBoundingClientRect();
+            pinchCenterX = center.x - rect.left;
+            pinchCenterY = center.y - rect.top;
+        }
+    }, { passive: false });
+
+    canvasses.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            var currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+            var scaleFactor = currentDistance / lastTouchDistance;
+            var newScale = initialPinchScale * scaleFactor;
+            newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+            
+            // Zoom toward pinch center
+            var center = getTouchCenter(e.touches[0], e.touches[1]);
+            var rect = canvasses.getBoundingClientRect();
+            var touchCenterX = center.x - rect.left;
+            var touchCenterY = center.y - rect.top;
+            
+            var scaleChange = newScale / loopyInstance.offsetScale;
+            loopyInstance.offsetX = touchCenterX - (touchCenterX - loopyInstance.offsetX) * scaleChange;
+            loopyInstance.offsetY = touchCenterY - (touchCenterY - loopyInstance.offsetY) * scaleChange;
+            loopyInstance.offsetScale = newScale;
+            
+            publish("resize");
+        }
+    }, { passive: false });
+
+    // Copy short link function with visual feedback
+    window.copyShortLink = function(url, btn) {
+        var copyBtn = btn;
+        var oldText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '¡Copiado!';
+        copyBtn.style.backgroundColor = '#27ae60';
+        copyBtn.style.transition = 'background-color 0.3s ease';
+        
+        copyToClipboard(url);
+        
+        setTimeout(function() {
+            copyBtn.innerHTML = oldText;
+            copyBtn.style.backgroundColor = '';
+        }, 2000);
+    };
 };
 </script>

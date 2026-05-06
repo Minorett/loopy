@@ -19,7 +19,10 @@ function Modal(loopy){
         self.isShowing = true;
     };
     self.hide = function(){
-        document.getElementById("modal_container").setAttribute("show","no");
+        var modalContainer = document.getElementById("modal_container");
+        if (modalContainer) {
+            modalContainer.setAttribute("show","no");
+        }
         if(self.currentPage && self.currentPage.onhide) self.currentPage.onhide();
         self.isShowing = false;
     };
