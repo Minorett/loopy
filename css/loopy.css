@@ -329,15 +329,13 @@ MODAL
 
 #grid-overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(90%, 600px);
-    height: min(80%, 600px);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: none;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    aspect-ratio: 1 / 1;
     opacity: 0.3;
     pointer-events: none;
     z-index: 0;
@@ -352,12 +350,12 @@ MODAL
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(10px, 2.5vw, 24px);
+    font-size: 24px;
     color: #888;
     text-transform: uppercase;
     font-weight: bold;
     text-align: center;
-    padding: 10px;
+    padding: 20px;
     box-sizing: border-box;
     line-height: 1.2;
     overflow: hidden;
