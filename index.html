@@ -45,20 +45,21 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #222;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-family: sans-serif;
             text-decoration: none;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: background 0.3s;
-        }
-        .contexto-link:hover {
-            background: #444;
+            z-index: 1000;
         }
         .contexto-link img {
             display: block;
+            height: 120px;
+        }
+        @media (max-width: 768px) {
+            .contexto-link {
+                bottom: 10px;
+                right: 10px;
+            }
+            .contexto-link img {
+                height: 60px;
+            }
         }
     </style>
 
@@ -106,7 +107,7 @@
 
     <!-- En Medio del Contexto link con imagen -->
     <a href="https://enmediodelcontexto.com.ar" class="contexto-link" target="_blank">
-        <img src="https://enmediodelcontexto.com.ar/wp-content/uploads/2025/08/EMC-white.png" alt="En Medio del Contexto" style="height:130px;">
+        <img src="https://enmediodelcontexto.com.ar/wp-content/uploads/2025/08/EMC-cropped.png" alt="En Medio del Contexto">
     </a>
 
 </body>
