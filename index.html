@@ -250,23 +250,7 @@ window.onload = function(){
             loopyInstance.offsetScale = newScale;
             
             publish("resize");
-        }
-    }, { passive: false });
-
-    // Copy short link function with visual feedback
-    window.copyShortLink = function(url, btn) {
-        var copyBtn = btn;
-        var oldText = copyBtn.innerHTML;
-        copyBtn.innerHTML = '¡Copiado!';
-        copyBtn.style.backgroundColor = '#27ae60';
-        copyBtn.style.transition = 'background-color 0.3s ease';
-        
-        copyToClipboard(url);
-        
-        setTimeout(function() {
-            copyBtn.innerHTML = oldText;
-            copyBtn.style.backgroundColor = '';
-        }, 2000);
-    };
-};
-</script>
+            }
+            }, { passive: false });
+            };
+            </script>
