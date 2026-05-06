@@ -159,27 +159,44 @@ function Loopy(config){
         var modelCanvas = self.model.canvas;
         var inkCanvas = self.ink.canvas;
         
+        // Use the actual displayed size based on viewport and transform
+        var canvasses = document.getElementById('canvasses');
+        var canvasWidth = modelCanvas.width;
+        var canvasHeight = modelCanvas.height;
+        
         // Create a temporary canvas for compositing
         var tempCanvas = document.createElement('canvas');
-        tempCanvas.width = modelCanvas.width;
-        tempCanvas.height = modelCanvas.height;
+        tempCanvas.width = canvasWidth;
+        tempCanvas.height = canvasHeight;
         var tempCtx = tempCanvas.getContext('2d');
         
         // 1. Fill with white background
         tempCtx.fillStyle = "#fff";
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         
-        // 2. Draw the model (and ink) on top
+        // 2. Draw the model (and ink) with current transform
+        tempCtx.save();
+        tempCtx.translate(self.offsetX, self.offsetY);
+        tempCtx.scale(self.offsetScale, self.offsetScale);
         tempCtx.drawImage(modelCanvas, 0, 0);
         tempCtx.drawImage(inkCanvas, 0, 0);
+        tempCtx.restore();
 
         // 3. Draw the analysis grid if it's visible
         var gridOverlay = document.getElementById('grid-overlay');
         if (gridOverlay && gridOverlay.classList.contains('show')) {
-            var canvasWidth = tempCanvas.width;
-            var canvasHeight = tempCanvas.height;
-            var cellWidth = canvasWidth / 3;
-            var cellHeight = canvasHeight / 3;
+            // Get the grid's actual bounds from its computed style
+            var gridRect = gridOverlay.getBoundingClientRect();
+            var canvassesRect = canvasses.getBoundingClientRect();
+            
+            // Calculate grid position relative to canvas
+            var gridLeft = (gridRect.left - canvassesRect.left);
+            var gridTop = (gridRect.top - canvassesRect.top);
+            var gridWidth = gridRect.width;
+            var gridHeight = gridRect.height;
+            
+            var cellWidth = gridWidth / 3;
+            var cellHeight = gridHeight / 3;
             
             // Grid labels based on the HTML structure
             var gridLabels = [
@@ -196,23 +213,28 @@ function Loopy(config){
             // Vertical lines
             for (var i = 1; i < 3; i++) {
                 tempCtx.beginPath();
-                tempCtx.moveTo(i * cellWidth, 0);
-                tempCtx.lineTo(i * cellWidth, canvasHeight);
+                tempCtx.moveTo(gridLeft + i * cellWidth, gridTop);
+                tempCtx.lineTo(gridLeft + i * cellWidth, gridTop + gridHeight);
                 tempCtx.stroke();
             }
             
             // Horizontal lines
             for (var i = 1; i < 3; i++) {
                 tempCtx.beginPath();
-                tempCtx.moveTo(0, i * cellHeight);
-                tempCtx.lineTo(canvasWidth, i * cellHeight);
+                tempCtx.moveTo(gridLeft, gridTop + i * cellHeight);
+                tempCtx.lineTo(gridLeft + gridWidth, gridTop + i * cellHeight);
                 tempCtx.stroke();
             }
             
             tempCtx.setLineDash([]);
             
+            // Calculate font size that scales with grid cell
+            var fontSize = Math.min(cellWidth, cellHeight) * 0.22;
+            fontSize = Math.max(fontSize, 10); // Minimum readable size
+            fontSize = Math.min(fontSize, 24); // Maximum to avoid huge labels
+            
             // Draw labels
-            tempCtx.font = "bold 24px 'Figtree', sans-serif";
+            tempCtx.font = "bold " + fontSize + "px 'Figtree', sans-serif";
             tempCtx.textAlign = "center";
             tempCtx.textBaseline = "middle";
             tempCtx.fillStyle = "rgba(136, 136, 136, 0.5)";
@@ -220,8 +242,8 @@ function Loopy(config){
             for (var row = 0; row < 3; row++) {
                 for (var col = 0; col < 3; col++) {
                     var label = gridLabels[row * 3 + col];
-                    var x = cellWidth * col + cellWidth / 2;
-                    var y = cellHeight * row + cellHeight / 2;
+                    var x = gridLeft + cellWidth * col + cellWidth / 2;
+                    var y = gridTop + cellHeight * row + cellHeight / 2;
                     tempCtx.fillText(label, x, y);
                 }
             }
