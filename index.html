@@ -172,32 +172,6 @@ window.onload = function(){
         sidebar.classList.add('show');
     });
 
-    // Grid position sync with Loopy transform
-    function updateGridPosition() {
-        var gridOverlay = document.getElementById('grid-overlay');
-        if (gridOverlay && gridOverlay.classList.contains('show') && window.loopy) {
-            var canvassesEl = document.getElementById('canvasses');
-            var centerX = window.loopy.offsetX;
-            var centerY = window.loopy.offsetY;
-            var scale = window.loopy.offsetScale;
-            
-            // Get canvas center
-            var rect = canvassesEl.getBoundingClientRect();
-            var canvasCenterX = rect.width / 2;
-            var canvasCenterY = rect.height / 2;
-            
-            // Calculate grid position based on Loopy's transform
-            // The grid should be centered where Loopy's coordinate system is centered
-            gridOverlay.style.left = (canvasCenterX + (centerX - canvasCenterX) * scale) + 'px';
-            gridOverlay.style.top = (canvasCenterY + (centerY - canvasCenterY) * scale) + 'px';
-            gridOverlay.style.transform = 'translate(-50%, -50%)';
-        }
-    }
-
-    // Update grid position on resize and periodically
-    subscribe("resize", updateGridPosition);
-    setInterval(updateGridPosition, 100); // Smooth sync
-
     // Smooth Zoom System
     var canvasses = document.getElementById('canvasses');
     var loopyInstance = window.loopy;
