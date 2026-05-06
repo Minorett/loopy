@@ -229,7 +229,20 @@ div[big=yes] .play_button_label{
     position: absolute;
     width: 250px;
     height: 40px;
-    cursor: pointer;
+    cursor: ew-resize;
+}
+.component_slider_native {
+    width: 250px;
+    margin: 0;
+    cursor: ew-resize;
+}
+.component_slider_indicators {
+    display: flex;
+    justify-content: space-between;
+    width: 250px;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 2px;
 }
 .component_slider_pointer{
     position: absolute;
