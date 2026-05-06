@@ -266,7 +266,7 @@ function Loopy(config){
                                 '<div style="text-align:center;padding:20px;font-family:\'Figtree\',sans-serif">' +
                                 '<div style="font-size:22px;font-weight:bold;margin-bottom:20px;">¡Link Generado!</div>' +
                                 '<div style="font-size:20px;margin-bottom:20px;word-break:break-all;color:#333;">' + response.shortUrl + '</div>' +
-                                '<button onclick="copyToClipboard(\'' + response.shortUrl + '\');this.innerHTML=\'¡Copiado!\';this.style.backgroundColor=\'#4CAF50\'" style="padding:12px 24px;font-size:16px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;">Copiar al portapapeles</button>' +
+                                '<button id="copy-short-btn" onclick="copyShortLink(\'' + response.shortUrl + '\', this)" style="padding:12px 24px;font-size:16px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;transition:background-color 0.3s ease;">Copiar link</button>' +
                                 '</div>',
                                 450,
                                 220
