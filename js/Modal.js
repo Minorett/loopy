@@ -132,9 +132,9 @@ function Modal(loopy){
     (function(){
         var page = new Page();
         page.width = 500;
-        page.height = 155;
+        page.height = 320;
         page.addComponent(new ComponentHTML({
-            html: "copy your link:"
+            html: "copia tu link:"
         }));
         var output = page.addComponent(new ComponentOutput({}));
 
@@ -143,8 +143,39 @@ function Modal(loopy){
         label.style.fontSize = "15px";
         label.style.marginTop = "6px";
         label.style.color = "#888";
-        label.innerHTML = "(this is a long URL, so you may want to use a link-shortener like <a target='_blank' href='https://bitly.com/'>bit.ly</a>)";
+        label.innerHTML = "(este es un link largo, tal vez prefieras un acortador)";
         page.dom.appendChild(label);
+
+        // Short link section
+        page.addComponent(new ComponentHTML({
+            html: "<br>o un link corto:"
+        }));
+        var shortOutput = page.addComponent(new ComponentOutput({}));
+        page.addComponent(new ComponentButton({
+            label: "Obtener link corto",
+            onclick: function(){
+                var data = loopy.model.serialize();
+                fetch("save.php", {
+                    method: "POST",
+                    body: data
+                })
+                .then(function(response){
+                    if(!response.ok) throw new Error("Failed to save");
+                    return response.text();
+                })
+                .then(function(id){
+                    var base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+                    if(base.charAt(base.length-1) != "/") base += "/";
+                    var shortLink = base + id;
+                    shortOutput.output(shortLink);
+                    shortOutput.dom.select();
+                })
+                .catch(function(err){
+                    console.error(err);
+                    alert("No se pudo generar el link corto. Inténtalo de nuevo.");
+                });
+            }
+        }));
 
         // chars left...
         var chars = document.createElement("div");
@@ -152,7 +183,7 @@ function Modal(loopy){
         chars.style.fontSize = "15px";
         chars.style.marginTop = "3px";
         chars.style.color = "#888";
-        chars.innerHTML = "X out of 2048 characters";
+        chars.innerHTML = "X de 2048 caracteres";
         page.dom.appendChild(chars);
 
         page.onshow = function(){
@@ -162,10 +193,13 @@ function Modal(loopy){
             output.output(link);
             output.dom.select();
 
+            // Clear short link
+            shortOutput.output("");
+
             // Chars left
-            var html = link.length+" / 2048 characters";
+            var html = link.length+" / 2048 caracteres";
             if(link.length>2048){
-                html += " - MAY BE TOO LONG FOR MOST BROWSERS";
+                html += " - PUEDE SER DEMASIADO LARGO PARA ALGUNOS NAVEGADORES";
             }
             chars.innerHTML = html;
             chars.style.fontWeight = (link.length>2048) ? "bold" : "100";
