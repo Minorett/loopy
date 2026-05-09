@@ -293,10 +293,42 @@ function Loopy(config){
 
 
     self.loadFromURL = function(){
-        // Load from URL data parameter or default
+        // 1. Load from URL data parameter (long URL)
         var data = _getParameterByName("data");
-        if(!data) data=decodeURIComponent(_blankData);
-        self.model.deserialize(data);
+        if(data){
+            self.model.deserialize(data);
+            return;
+        }
+
+        // 2. Load from short ID
+        var id = _getParameterByName("id");
+        if(!id){
+            // Try to get from pathname (8-char alphanumeric at the end)
+            var path = window.location.pathname;
+            var match = path.match(/\/([a-zA-Z0-9]{8})$/);
+            if(match) id = match[1];
+        }
+
+        if(id){
+            fetch("save.php?id="+id)
+                .then(function(response){
+                    if(response.ok) return response.text();
+                    throw new Error("Model not found");
+                })
+                .then(function(text){
+                    self.model.deserialize(decodeURIComponent(text));
+                    self.model.center();
+                })
+                .catch(function(err){
+                    console.error(err);
+                    // Fallback to blank
+                    self.model.deserialize(decodeURIComponent(_blankData));
+                });
+            return;
+        }
+
+        // 3. Default: Blank start
+        self.model.deserialize(decodeURIComponent(_blankData));
     };
 
 
