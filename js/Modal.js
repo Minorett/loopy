@@ -151,31 +151,6 @@ function Modal(loopy){
             html: "<br>o un link corto:"
         }));
         var shortOutput = page.addComponent(new ComponentOutput({}));
-        page.addComponent(new ComponentButton({
-            label: "Obtener link corto",
-            onclick: function(){
-                var data = loopy.model.serialize();
-                fetch("save.php", {
-                    method: "POST",
-                    body: data
-                })
-                .then(function(response){
-                    if(!response.ok) throw new Error("Failed to save");
-                    return response.text();
-                })
-                .then(function(id){
-                    var base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
-                    if(base.charAt(base.length-1) != "/") base += "/";
-                    var shortLink = base + id;
-                    shortOutput.output(shortLink);
-                    shortOutput.dom.select();
-                })
-                .catch(function(err){
-                    console.error(err);
-                    alert("No se pudo generar el link corto. Inténtalo de nuevo.");
-                });
-            }
-        }));
 
         // chars left...
         var chars = document.createElement("div");
@@ -193,8 +168,8 @@ function Modal(loopy){
             output.output(link);
             output.dom.select();
 
-            // Clear short link
-            shortOutput.output("");
+            // Short link
+            shortOutput.output("Generando...");
 
             // Chars left
             var html = link.length+" / 2048 caracteres";
@@ -204,6 +179,27 @@ function Modal(loopy){
             chars.innerHTML = html;
             chars.style.fontWeight = (link.length>2048) ? "bold" : "100";
             chars.style.fontSize = (link.length>2048) ? "14px" : "15px";
+
+            // Fetch short link
+            var data = loopy.model.serialize();
+            fetch("save.php", {
+                method: "POST",
+                body: data
+            })
+            .then(function(response){
+                if(!response.ok) throw new Error("Failed to save");
+                return response.text();
+            })
+            .then(function(id){
+                var base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+                if(base.charAt(base.length-1) != "/") base += "/";
+                var shortLink = base + id;
+                shortOutput.output(shortLink);
+            })
+            .catch(function(err){
+                console.error(err);
+                shortOutput.output("Error al generar link corto");
+            });
 
         };
 
