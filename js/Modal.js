@@ -192,6 +192,7 @@ function Modal(loopy){
             })
             .then(function(id){
                 var base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+                base = base.replace(/\/([a-zA-Z0-9]{8})\/?$/, "/");
                 if(base.charAt(base.length-1) != "/") base += "/";
                 var shortLink = base + id;
                 shortOutput.output(shortLink);
