@@ -84,6 +84,7 @@
 
     <!-- Grid Toggle Button -->
     <button id="grid-toggle" title="MetaModelo Evolutivo Extendido (MMEE)">
+        <span class="button-tag">MMEE</span>
         <img src="https://img.icons8.com/material-outlined/24/ffffff/grid.png" alt="Grilla" style="width:24px;height:24px;">
     </button>
 
@@ -94,6 +95,7 @@
 
     <!-- Recenter Button -->
     <button id="recenter-button" title="Centrar Vista">
+        <span class="button-tag">Centrar</span>
         <img src="https://images.icon-icons.com/1863/PNG/512/center-focus-strong_119304.png" alt="Centrar" style="width:24px;height:24px;">
     </button>
 
@@ -154,6 +156,8 @@ window.onload = function(){
     var gridToggle = document.getElementById('grid-toggle');
     var gridOverlay = document.getElementById('grid-overlay');
     gridToggle.onclick = function() {
+        var tag = this.querySelector('.button-tag');
+        if(tag) tag.remove();
         if (gridOverlay.classList.contains('show')) {
             gridOverlay.classList.remove('show');
         } else {
@@ -175,6 +179,8 @@ window.onload = function(){
     // Recenter button logic
     var recenterButton = document.getElementById('recenter-button');
     recenterButton.onclick = function() {
+        var tag = this.querySelector('.button-tag');
+        if(tag) tag.remove();
         window.loopy.model.center(true);
         publish("resize");
     };
@@ -187,8 +193,8 @@ window.onload = function(){
     // Smooth Zoom System
     var canvasses = document.getElementById('canvasses');
     var loopyInstance = window.loopy;
-    var MIN_SCALE = 0.2;
-    var MAX_SCALE = 5.0;
+    var MIN_SCALE = 0.55;
+    var MAX_SCALE = 2.0;
 
     // Scroll wheel zoom (PC)
     canvasses.addEventListener('wheel', function(e) {
