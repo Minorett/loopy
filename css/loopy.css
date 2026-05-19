@@ -547,3 +547,26 @@ MODAL
         left: 20px;
     }
 }
+
+/* Button tags - temporary labels for grid-toggle and recenter-button */
+.button-tag {
+    position: absolute;
+    right: 60px;
+    background: #4a90e2;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
+
+@media (max-width: 768px) {
+    .button-tag {
+        right: auto;
+        left: 60px;
+    }
+}
