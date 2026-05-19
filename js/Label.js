@@ -5,6 +5,7 @@ LABEL!
 **********************************/
 
 Label.FONTSIZE = 40;
+Label.MAX_WIDTH = 1200;
 
 function Label(model, config){
 
@@ -54,7 +55,7 @@ function Label(model, config){
         ctx.fillStyle = "#000";
 
         // ugh new lines are a PAIN.
-        var lines = self.breakText();
+        var lines = self.breakText(ctx);
         ctx.translate(0, -(Label.FONTSIZE*lines.length)/2);
         for(var i=0; i<lines.length; i++){
             var line = lines[i];
@@ -85,25 +86,25 @@ function Label(model, config){
     // HELPER METHODS ////////////////////
     //////////////////////////////////////
 
-    self.breakText = function(){
-        return self.text.split(/\n/);
+    self.breakText = function(ctx){
+        return _wrapText(ctx, self.text, Label.MAX_WIDTH);
     };
 
     self.getBounds = function(){
-
         var ctx = self.model.context;
-
-        // Get MAX width...
-        var lines = self.breakText();
+        ctx.save();
+        ctx.font = "300 "+Label.FONTSIZE+"px 'Figtree', sans-serif";
+        var lines = self.breakText(ctx);
         var maxWidth = 0;
         for(var i=0; i<lines.length; i++){
             var line = lines[i];
-            var w = (ctx.measureText(line).width + 10)*2;
+            var w = ctx.measureText(line).width;
             if(maxWidth<w) maxWidth=w;
         }
+        ctx.restore();
 
-        // Dimensions, then:
-        var w = maxWidth;
+        // Dimensions, then: (convert retina to logical)
+        var w = maxWidth/2 + 10;
         var h = (Label.FONTSIZE*lines.length)/2;
 
         // Bounds, then:
@@ -113,7 +114,6 @@ function Label(model, config){
             width: w,
             height: h+Label.FONTSIZE/2
         };
-
     };
 
     self.isPointInLabel = function(x, y){
