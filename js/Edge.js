@@ -268,6 +268,15 @@ function Edge(model, config){
             end = -endAngle+arrowAngle;
         }
 
+        // Persist arc geometry params for hit-testing
+        self.r = r;
+        self.y2 = y2;
+        self.begin = begin;
+        self.end = end;
+        self.a = a;
+        self.w = w;
+        self.y = y;
+
         // Arrow HEAD!
         arrowLength = 10*2;
         ax = w/2 + Math.cos(end)*r;
@@ -442,6 +451,8 @@ function Edge(model, config){
     // HELPER METHODS ////////////////////
     //////////////////////////////////////
 
+    var HIT_THRESHOLD = 12;
+
     self.isPointOnLabel = function(x, y){
         // TOTAL HACK: radius based on TOOL BEING USED.
         var radius;
@@ -449,6 +460,59 @@ function Edge(model, config){
         else if(self.loopy.tool==Loopy.TOOL_ERASE) radius=25; // no accidental erase
         else radius = 15; // you wanna label close to edges
         return _isPointInCircle(x, y, self.labelX, self.labelY, radius);
+    };
+
+    self.isPointInHitbox = function(x, y){
+        // Require persisted arc params (populated during update/draw)
+        if(self.r === undefined || self.y2 === undefined ||
+           self.begin === undefined || self.end === undefined ||
+           self.a === undefined || self.w === undefined){
+            return false;
+        }
+
+        // Point is in canvas coordinates; geometry is retina (2x). Double the point.
+        var px = x * 2;
+        var py = y * 2;
+
+        // Arc center in unrotated coordinates is at (w/2, y2).
+        // The edge's frame is rotated by angle 'a' around (fx,fy).
+        // To test, unrotate the point into the edge's local frame.
+        var dx = px - self.from.x * 2;
+        var dy = py - self.from.y * 2;
+        var cosA = Math.cos(-self.a);
+        var sinA = Math.sin(-self.a);
+        var localX = dx * cosA - dy * sinA;
+        var localY = dx * sinA + dy * cosA;
+
+        // Distance from arc center (w/2, y2) in local coords
+        var cx = self.w / 2;
+        var cy = self.y2;
+        var dist = Math.sqrt((localX - cx) * (localX - cx) + (localY - cy) * (localY - cy));
+
+        // Check proximity to arc radius
+        if(Math.abs(dist - self.r) > HIT_THRESHOLD * 2){
+            return false;
+        }
+
+        // Compute angle of point relative to arc center
+        var pointAngle = Math.atan2(localY - cy, localX - cx);
+
+        // Normalize begin/end to [0, 2*PI) for angular range check
+        var b = ((self.begin % Math.TAU) + Math.TAU) % Math.TAU;
+        var e = ((self.end % Math.TAU) + Math.TAU) % Math.TAU;
+        var p = ((pointAngle % Math.TAU) + Math.TAU) % Math.TAU;
+
+        // Handle angular wrap-around. If the arc does not cross 0, sweep = e - b.
+        // If the arc crosses 0 (e < b), sweep wraps around.
+        if(b <= e){
+            // No wrap
+            if(p < b || p > e) return false;
+        }else{
+            // Wrap: valid angles are [b, 2*PI) ∪ [0, e]
+            if(p < b && p > e) return false;
+        }
+
+        return true;
     };
 
     self.getBoundingBox = function(){
@@ -512,3 +576,15 @@ function Edge(model, config){
 
 
 }
+/home/engine/.bashrc: line 1: syntax error near unexpected token `('
+/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
+/home/engine/.bashrc: line 1: syntax error near unexpected token `('
+/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
+/home/engine/.bashrc: line 1: syntax error near unexpected token `('
+/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
+/home/engine/.bashrc: line 1: syntax error near unexpected token `('
+/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
+/home/engine/.bashrc: line 1: syntax error near unexpected token `('
+/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
+/home/engine/.bashrc: line 1: syntax error near unexpected token `('
+/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
