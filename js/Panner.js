@@ -39,6 +39,8 @@
                 isPanning = true;
                 lastCanvasX = Mouse.canvasX;
                 lastCanvasY = Mouse.canvasY;
+            } else {
+                isPanning = false;
             }
         };
 
@@ -64,6 +66,11 @@
         subscribe("mousedown", _onmousedown);
         subscribe("mousemove", _onmousemove);
         subscribe("mouseup", _onmouseup);
+
+        // Also stop panning if window loses focus
+        window.addEventListener('blur', function() {
+            isPanning = false;
+        });
 
 
         // --- ZOOM LOGIC ---

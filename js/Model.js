@@ -423,6 +423,7 @@ function Model(loopy){
         // ONLY WHEN EDITING (and NOT erase)
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
         if(self.loopy.tool==Loopy.TOOL_ERASE) return;
+        if(Key.space) return; // DON'T EDIT IF PANNING
 
         // Did you click on a node? If so, edit THAT node.
         var clickedNode = self.getNodeByPoint(Mouse.x, Mouse.y);
