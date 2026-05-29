@@ -10,6 +10,7 @@
         17: "control",
         91: "control", // macs
         13: "enter", // enter
+        32: "space", // space
 
         // TODO: Standardize the NAMING across files?!?!
         68: "ink", // (D)ibujar

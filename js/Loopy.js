@@ -29,7 +29,8 @@ function Loopy(config){
 
     // Mouse
     Mouse.init(document.getElementById("canvasses")); // TODO: ugly fix, ew
-    
+    self.panner = new Panner(self);
+
     // Model
     self.model = new Model(self);
 
