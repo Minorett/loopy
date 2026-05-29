@@ -156,8 +156,9 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
             // event.preventDefault();
         }else{
             // Not Touch
-            _fakeEvent.x = event.offsetX;
-            _fakeEvent.y = event.offsetY;
+            var offset = _getTotalOffset(target);
+            _fakeEvent.x = event.clientX - offset.left;
+            _fakeEvent.y = event.clientY - offset.top;
         }
 
         // Mousemove callback

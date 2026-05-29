@@ -58,10 +58,11 @@ function Ink(loopy){
         self.strokeData = []; // Reset stroke data
     };
     subscribe("mousedown",function(){
-
+        
         // ONLY WHEN EDITING w INK
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
         if(self.loopy.tool!=Loopy.TOOL_INK) return;
+        if(Key.space) return; // DON'T DRAW IF PANNING
 
         // New stroke data
         self.strokeData = [];
@@ -76,6 +77,7 @@ function Ink(loopy){
         // ONLY WHEN EDITING w INK
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
         if(self.loopy.tool!=Loopy.TOOL_INK) return;
+        if(Key.space) return; // DON'T DRAW IF PANNING
 
         // Draw ink!
         self.drawInk();
