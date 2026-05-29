@@ -397,11 +397,13 @@ function Model(loopy){
     };
 
     self.getEdgeByPoint = function(x, y, wholeArrow){
-        // TODO: wholeArrow option?
-        var result;
         for(var i=self.edges.length-1; i>=0; i--){ // top-down
             var edge = self.edges[i];
+            // First, check if the point is on the edge's label (existing behavior)
             if(edge.isPointOnLabel(x,y)) return edge;
+            // Next, check if the point is on the edge's arc body via precise hitbox
+            // Falls back gracefully if isPointInHitbox is unavailable on older edge objects
+            if(typeof edge.isPointInHitbox === 'function' && edge.isPointInHitbox(x,y)) return edge;
         }
         return null;
     };
