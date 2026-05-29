@@ -44,7 +44,7 @@ function Sidebar(loopy){
         page.addComponent("hue", new ComponentSlider({
             bg: "color",
             label: "Color:",
-            options: [0,1,2,3,4,5],
+            options: [0, 1, 2, 3, 4, 5, 6, 7],
             oninput: function(value){
                 Node.defaultHue = value;
             }
@@ -379,14 +379,32 @@ function ComponentSlider(config){
     };
 
     // Slider DOM: graphic + pointer
-    var slider = new Image();
-    slider.draggable = false;
-    slider.src = "css/sliders/"+config.bg+".png";
-    slider.setAttribute("class","component_slider_graphic");
+    var slider;
+    if(config.bg === "color"){
+        slider = document.createElement("div");
+        slider.style.width = "250px";
+        slider.style.height = "31.25px";
+        slider.style.display = "flex";
+        slider.setAttribute("class","component_slider_graphic");
+        for(var i=0; i<Node.COLORS.length; i++){
+            var square = document.createElement("div");
+            square.style.flex = "1";
+            square.style.height = "100%";
+            square.style.backgroundColor = Node.COLORS[i];
+            slider.appendChild(square);
+        }
+    } else {
+        slider = new Image();
+        slider.draggable = false;
+        slider.src = "css/sliders/"+config.bg+".png";
+        slider.setAttribute("class","component_slider_graphic");
+    }
+
     var pointer = new Image();
     pointer.draggable = false;
     pointer.src = "css/sliders/slider_pointer.png";
     pointer.setAttribute("class","component_slider_pointer");
+    if(config.bg === "color") pointer.style.top = "33.25px";
     sliderDOM.appendChild(slider);
     sliderDOM.appendChild(pointer);
 

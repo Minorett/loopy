@@ -4,14 +4,16 @@ NODE!
 
 **********************************/
 
-Node.COLORS = {
-    0: "#EA3E3E", // red
-    1: "#EA9D51", // orange
-    2: "#FEEE43", // yellow
-    3: "#BFEE3F", // green
-    4: "#7FD4FF", // blue
-    5: "#A97FFF" // purple
-};
+Node.COLORS = [
+    "#EA3E3E", // 0: Red
+    "#FF83C1", // 1: Pink
+    "#EA9D51", // 2: Orange
+    "#FEEE43", // 3: Yellow
+    "#BFEE3F", // 4: Green
+    "#7FD4FF", // 5: Celeste/Light Blue
+    "#1966D2", // 6: Blue
+    "#A97FFF"  // 7: Violet
+];
 
 Node.defaultValue = 0.5;
 Node.defaultHue = 0;
