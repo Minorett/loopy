@@ -417,8 +417,8 @@ function Model(loopy){
         return null;
     };
 
-    // Click to edit!
-    subscribe("mouseclick",function(){
+    // Click/Double-click to edit!
+    var _editCallback = function(){
 
         // ONLY WHEN EDITING (and NOT erase)
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
@@ -454,6 +454,12 @@ function Model(loopy){
         // Otherwise, go to main Edit page.
         loopy.sidebar.showPage("Edit");
 
+    };
+    subscribe("mouseclick", function(){
+        if(window.innerWidth > 768) _editCallback();
+    });
+    subscribe("mousedblclick", function(){
+        if(window.innerWidth <= 768) _editCallback();
     });
 
     // Centering & Scaling
