@@ -136,18 +136,24 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
     // WRAP THEM CALLBACKS
     var _onmousedown = function(event){
         var _fakeEvent = _onmousemove(event);
+        _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
+        _fakeEvent.originalEvent = event;
         onmousedown(_fakeEvent);
     };
     var _onmousemove = function(event){
         
         // Mouse position
         var _fakeEvent = {};
+        _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
+        _fakeEvent.originalEvent = event;
         if(event.changedTouches){
+            // If more than one touch, don't treat as a single-point mouse event
+            if(event.touches && event.touches.length > 1) return;
             // Touch
             var offset = _getTotalOffset(target);
             _fakeEvent.x = event.changedTouches[0].clientX - offset.left;
             _fakeEvent.y = event.changedTouches[0].clientY - offset.top;
-            event.preventDefault();
+            // event.preventDefault();
         }else{
             // Not Touch
             _fakeEvent.x = event.offsetX;

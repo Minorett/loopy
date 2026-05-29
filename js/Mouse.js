@@ -9,10 +9,16 @@ Mouse.init = function(target){
     var _onmousedown = function(event){
         Mouse.moved = false;
         Mouse.pressed = true;
+        Mouse.button = event.button;
+        Mouse.originalEvent = event.originalEvent;
         Mouse.startedOnTarget = true;
         publish("mousedown");
     };
     var _onmousemove = function(event){
+
+        // CANVAS COORDS
+        Mouse.canvasX = event.x;
+        Mouse.canvasY = event.y;
 
         // DO THE INVERSE
         var mx = (event.x - loopy.offsetX) / loopy.offsetScale;
@@ -28,6 +34,7 @@ Mouse.init = function(target){
     };
     var _onmouseup = function(){
         Mouse.pressed = false;
+        Mouse.button = -1;
         if(Mouse.startedOnTarget){
             publish("mouseup");
             if(!Mouse.moved){
