@@ -1,6 +1,10 @@
 window.Mouse = {};
 Mouse.init = function(target){
 
+    // Double-click detection
+    var _lastClickTime = 0;
+    var _DOUBLE_CLICK_THRESHOLD = 350;
+
     // Events!
     var _onmousedown = function(event){
         Mouse.moved = false;
@@ -26,7 +30,15 @@ Mouse.init = function(target){
         Mouse.pressed = false;
         if(Mouse.startedOnTarget){
             publish("mouseup");
-            if(!Mouse.moved) publish("mouseclick");
+            if(!Mouse.moved){
+                publish("mouseclick");
+                // Double-click detection: if two clicks within 350ms, emit mousedblclick
+                var now = Date.now();
+                if(now - _lastClickTime <= _DOUBLE_CLICK_THRESHOLD){
+                    publish("mousedblclick", [Mouse.x, Mouse.y]);
+                }
+                _lastClickTime = now;
+            }
         }
         Mouse.moved = false;
         Mouse.startedOnTarget = false;
