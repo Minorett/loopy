@@ -281,6 +281,29 @@ div[big=yes] .play_button_label{
     background: #333;
 }
 
+.component_choices {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+.component_choice {
+    flex: 1;
+    background: #888;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    margin: 0 2px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.component_choice:hover {
+    background: #999;
+}
+.component_choice[active=yes] {
+    background: #EA3E3E;
+}
+
 
 
 /**********

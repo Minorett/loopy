@@ -58,6 +58,14 @@ function Sidebar(loopy){
                 Node.defaultValue = value;
             }
         }));
+        page.addComponent("shape", new ComponentChoices({
+            label: "Forma:",
+            choices: [
+                {label: "Círculo", value: "circle"},
+                {label: "Cuadrado", value: "square"},
+                {label: "Diamante", value: "diamond"}
+            ]
+        }));
         page.onedit = function(){
 
             // Set color of Slider
@@ -537,6 +545,55 @@ function ComponentOutput(config){
     // Output the string!
     self.output = function(string){
         self.dom.value = string;
+    };
+
+}
+
+function ComponentChoices(config){
+
+    // Inherit
+    var self = this;
+    Component.apply(self);
+
+    // DOM: label + choices
+    self.dom = document.createElement("div");
+    var label = _createLabel(config.label);
+    self.dom.appendChild(label);
+
+    var choicesDOM = document.createElement("div");
+    choicesDOM.setAttribute("class", "component_choices");
+    self.dom.appendChild(choicesDOM);
+
+    // Create choices
+    for(var i=0; i<config.choices.length; i++){
+        var choice = config.choices[i];
+        var button = document.createElement("div");
+        button.setAttribute("class", "component_choice");
+        button.innerHTML = choice.label;
+        
+        (function(value){
+            button.onclick = function(){
+                self.setValue(value);
+                if(config.oninput) config.oninput(value);
+                self.show();
+            };
+        })(choice.value);
+        
+        choicesDOM.appendChild(button);
+    }
+
+    // Show
+    self.show = function(){
+        var value = self.getValue();
+        for(var i=0; i<choicesDOM.children.length; i++){
+            var button = choicesDOM.children[i];
+            var choice = config.choices[i];
+            if(choice.value == value){
+                button.setAttribute("active", "yes");
+            } else {
+                button.removeAttribute("active");
+            }
+        }
     };
 
 }
