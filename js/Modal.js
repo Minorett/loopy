@@ -132,53 +132,18 @@ function Modal(loopy){
     (function(){
         var page = new Page();
         page.width = 500;
-        page.height = 320;
-        page.addComponent(new ComponentHTML({
-            html: "copia tu link:"
-        }));
-        var output = page.addComponent(new ComponentOutput({}));
-
-        var label = document.createElement("div");
-        label.style.textAlign = "right";
-        label.style.fontSize = "15px";
-        label.style.marginTop = "6px";
-        label.style.color = "#888";
-        label.innerHTML = "(este es un link largo, tal vez prefieras un acortador)";
-        page.dom.appendChild(label);
+        page.height = 200;
 
         // Short link section
         page.addComponent(new ComponentHTML({
-            html: "<br>o un link corto:"
+            html: "Link guardado:"
         }));
         var shortOutput = page.addComponent(new ComponentOutput({}));
 
-        // chars left...
-        var chars = document.createElement("div");
-        chars.style.textAlign = "right";
-        chars.style.fontSize = "15px";
-        chars.style.marginTop = "3px";
-        chars.style.color = "#888";
-        chars.innerHTML = "X de 2048 caracteres";
-        page.dom.appendChild(chars);
-
         page.onshow = function(){
-
-            // Copy-able link
-            var link = loopy.saveToURL();
-            output.output(link);
-            output.dom.select();
 
             // Short link
             shortOutput.output("Generando...");
-
-            // Chars left
-            var html = link.length+" / 2048 caracteres";
-            if(link.length>2048){
-                html += " - PUEDE SER DEMASIADO LARGO PARA ALGUNOS NAVEGADORES";
-            }
-            chars.innerHTML = html;
-            chars.style.fontWeight = (link.length>2048) ? "bold" : "100";
-            chars.style.fontSize = (link.length>2048) ? "14px" : "15px";
 
             // Fetch short link
             var data = loopy.model.serialize();
@@ -196,6 +161,7 @@ function Modal(loopy){
                 if(base.charAt(base.length-1) != "/") base += "/";
                 var shortLink = base + id;
                 shortOutput.output(shortLink);
+                shortOutput.dom.select();
             })
             .catch(function(err){
                 console.error(err);
