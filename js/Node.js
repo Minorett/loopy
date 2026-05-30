@@ -38,7 +38,8 @@ function Node(model, config){
         init: Node.defaultValue, // initial value!
         label: "?",
         hue: Node.defaultHue,
-        radius: Node.DEFAULT_RADIUS
+        radius: Node.DEFAULT_RADIUS,
+        shape: "circle"
     });
 
     // Centrality
@@ -181,6 +182,22 @@ function Node(model, config){
 
     // Draw
     var _circleRadius = 0;
+    self.getPath = function(ctx, r){
+        var shape = self.shape || "circle";
+        if(shape=="circle"){
+            ctx.arc(0, 0, r, 0, Math.TAU, false);
+        }
+        if(shape=="square"){
+            ctx.rect(-r, -r, r*2, r*2);
+        }
+        if(shape=="diamond"){
+            ctx.moveTo(0, -r);
+            ctx.lineTo(r, 0);
+            ctx.lineTo(0, r);
+            ctx.lineTo(-r, 0);
+            ctx.closePath();
+        }
+    };
     self.draw = function(ctx){
 
         // Retina
@@ -223,14 +240,16 @@ function Node(model, config){
         // DRAW HIGHLIGHT???
         if(self.loopy.sidebar.currentPage.target == self){
             ctx.beginPath();
-            ctx.arc(0, 0, r+40, 0, Math.TAU, false);
+            // ctx.arc(0, 0, r+40, 0, Math.TAU, false);
+            self.getPath(ctx, r+40);
             ctx.fillStyle = HIGHLIGHT_COLOR;
             ctx.fill();
         }
 
         // White-gray bubble with colored border
         ctx.beginPath();
-        ctx.arc(0, 0, r-2, 0, Math.TAU, false);
+        // ctx.arc(0, 0, r-2, 0, Math.TAU, false);
+        self.getPath(ctx, r-2);
         ctx.fillStyle = "#fff";
         ctx.fill();
         ctx.lineWidth = 6;
@@ -267,7 +286,8 @@ function Node(model, config){
         ctx.beginPath();
         var _circleRadiusGoto = r*_value; // radius
         _circleRadius = _circleRadius*0.8 + _circleRadiusGoto*0.2;
-        ctx.arc(0, 0, _circleRadius, 0, Math.TAU, false);
+        // ctx.arc(0, 0, _circleRadius, 0, Math.TAU, false);
+        self.getPath(ctx, _circleRadius);
         ctx.fillStyle = color;
         ctx.fill();
 
@@ -362,7 +382,20 @@ function Node(model, config){
 
     self.isPointInNode = function(x, y, buffer){
         buffer = buffer || 0;
-        return _isPointInCircle(x, y, self.x, self.y, self.radius+buffer);
+        var r = self.radius + buffer;
+        var dx = Math.abs(x - self.x);
+        var dy = Math.abs(y - self.y);
+        var shape = self.shape || "circle";
+        if(shape=="circle"){
+            return (dx*dx + dy*dy) <= r*r;
+        }
+        if(shape=="square"){
+            return dx <= r && dy <= r;
+        }
+        if(shape=="diamond"){
+            return (dx + dy) <= r;
+        }
+        return false;
     };
 
     self.getBoundingBox = function(){
