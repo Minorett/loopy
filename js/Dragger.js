@@ -108,7 +108,7 @@ function Dragger(loopy){
                 var mag = Math.sqrt(dx*dx + dy*dy);
 
                 // Minimum mag
-                var minimum = edge.from.radius+25;
+                var minimum = edge.from.getDisplayRadius()+25;
                 if(mag<minimum) mag=minimum;
 
                 // Update edge
