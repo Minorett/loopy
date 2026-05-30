@@ -309,6 +309,9 @@ function Model(loopy){
         // META.
         data.push(Node._UID);
 
+        // GRID.
+        data.push(self.loopy.showGrid ? 1 : 0);
+
         // Return as string!
         var dataString = JSON.stringify(data);
         dataString = dataString.replace(/"/gi, "%22"); // and ONLY URIENCODE THE QUOTES
@@ -328,6 +331,7 @@ function Model(loopy){
         var edges = data[1];
         var labels = data[2];
         var UID = data[3];
+        var showGrid = data[4];
 
         // Nodes
         for(var i=0;i<nodes.length;i++){
@@ -368,6 +372,10 @@ function Model(loopy){
 
         // META.
         Node._UID = UID;
+
+        // GRID.
+        self.loopy.showGrid = !!showGrid;
+        publish("grid/toggle", [self.loopy.showGrid]);
 
     };
 
