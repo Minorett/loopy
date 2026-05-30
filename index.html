@@ -151,19 +151,28 @@
 <!-- Start it -->
 <script>
 window.onload = function(){
+
+    // Grid toggle UI sync
+    var gridToggle = document.getElementById('grid-toggle');
+    var gridOverlay = document.getElementById('grid-overlay');
+    subscribe("grid/toggle", function(show) {
+        if (show) {
+            gridOverlay.classList.add('show');
+        } else {
+            gridOverlay.classList.remove('show');
+        }
+    });
+
+    // Start Loopy
     window.loopy = new Loopy();
 
     // Grid toggle logic
-    var gridToggle = document.getElementById('grid-toggle');
-    var gridOverlay = document.getElementById('grid-overlay');
     gridToggle.onclick = function() {
         var tag = this.querySelector('.button-tag');
         if(tag) tag.remove();
-        if (gridOverlay.classList.contains('show')) {
-            gridOverlay.classList.remove('show');
-        } else {
-            gridOverlay.classList.add('show');
-        }
+        window.loopy.showGrid = !window.loopy.showGrid;
+        publish("grid/toggle", [window.loopy.showGrid]);
+        publish("model/changed");
     };
 
     // Sidebar toggle logic

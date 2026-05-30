@@ -31,6 +31,9 @@ function Loopy(config){
     Mouse.init(document.getElementById("canvasses")); // TODO: ugly fix, ew
     self.panner = new Panner(self);
 
+    // Grid state
+    self.showGrid = false;
+
     // Model
     self.model = new Model(self);
 
