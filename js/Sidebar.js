@@ -180,7 +180,7 @@ function Sidebar(loopy){
         page.addComponent(new ComponentHTML({
             html: ""+
             
-            "<b style='font-size:1.4em'>LOOP español </b> (v1.1)<br>una herramienta para pensar sistemas complejos.<br><br>"+
+            "<b style='font-size:1.4em'>LOOP español </b> (v2)<br>una herramienta para pensar sistemas complejos.<br><br>"+
 
             "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
             "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span> "+
