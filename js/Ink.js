@@ -145,11 +145,11 @@ function Ink(loopy){
 
                 // ACTUALLY, IF THE ARC IS *NOT* GREATER THAN THE RADIUS, DON'T DO IT.
                 // (and otherwise, make sure minimum distance of radius+25)
-                if(edgeConfig.arc < startNode.radius){
+                if(edgeConfig.arc < startNode.getDisplayRadius()){
                     edgeConfig=null;
                     loopy.sidebar.edit(startNode); // you were probably trying to edit the node
                 }else{
-                    var minimum = startNode.radius+25;
+                    var minimum = startNode.getDisplayRadius()+25;
                     if(edgeConfig.arc<minimum) edgeConfig.arc=minimum;
                 }
 

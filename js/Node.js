@@ -19,6 +19,7 @@ Node.defaultValue = 0.5;
 Node.defaultHue = 0;
 
 Node.DEFAULT_RADIUS = 60;
+Node.DIAMOND_MULTIPLIER = 1.2;
 
 function Node(model, config){
 
@@ -41,6 +42,13 @@ function Node(model, config){
         radius: Node.DEFAULT_RADIUS,
         shape: "circle"
     });
+
+    self.getDisplayRadius = function() {
+        if(self.shape === "diamond") {
+            return self.radius * Node.DIAMOND_MULTIPLIER;
+        }
+        return self.radius;
+    };
 
     // Centrality
     self.centrality = 0;
@@ -203,7 +211,7 @@ function Node(model, config){
         // Retina
         var x = self.x*2;
         var y = self.y*2;
-        var r = self.radius*2;
+        var r = self.getDisplayRadius()*2;
         var color = Node.COLORS[self.hue];
 
         // Translate!
@@ -382,7 +390,7 @@ function Node(model, config){
 
     self.isPointInNode = function(x, y, buffer){
         buffer = buffer || 0;
-        var r = self.radius + buffer;
+        var r = self.getDisplayRadius() + buffer;
         var dx = Math.abs(x - self.x);
         var dy = Math.abs(y - self.y);
         var shape = self.shape || "circle";
@@ -399,11 +407,12 @@ function Node(model, config){
     };
 
     self.getBoundingBox = function(){
+        var r = self.getDisplayRadius();
         return {
-            left: self.x - self.radius,
-            top: self.y - self.radius,
-            right: self.x + self.radius,
-            bottom: self.y + self.radius
+            left: self.x - r,
+            top: self.y - r,
+            right: self.x + r,
+            bottom: self.y + r
         };
     };
 
