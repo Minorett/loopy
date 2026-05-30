@@ -64,8 +64,11 @@
             isPanning = false;
         });
 
-        // Global mouseup ensures panning stops even if mouse is released outside canvas
+        // Global mouseup/touchend ensures panning stops even if mouse is released outside canvas
         window.addEventListener('mouseup', function() {
+            isPanning = false;
+        });
+        window.addEventListener('touchend', function() {
             isPanning = false;
         });
 
