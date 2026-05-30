@@ -27,14 +27,6 @@
             // 2. Right Click (button 2) or Middle Click (button 1)
             if(Mouse.button === 1 || Mouse.button === 2) shouldPan = true;
 
-            // 3. Left Click on empty background with Drag Tool
-            if(loopy.tool === Loopy.TOOL_DRAG && Mouse.button === 0){
-                var hit = loopy.model.getNodeByPoint(Mouse.x, Mouse.y) || 
-                          loopy.model.getEdgeByPoint(Mouse.x, Mouse.y) || 
-                          loopy.model.getLabelByPoint(Mouse.x, Mouse.y);
-                if(!hit) shouldPan = true;
-            }
-
             if(shouldPan){
                 isPanning = true;
                 lastCanvasX = Mouse.canvasX;
@@ -69,6 +61,11 @@
 
         // Also stop panning if window loses focus
         window.addEventListener('blur', function() {
+            isPanning = false;
+        });
+
+        // Global mouseup ensures panning stops even if mouse is released outside canvas
+        window.addEventListener('mouseup', function() {
             isPanning = false;
         });
 
