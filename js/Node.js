@@ -106,11 +106,17 @@ function Node(model, config){
 
     });
     var _listenerMouseUp = subscribe("mouseup",function(){
-        if(self.loopy.mode!=Loopy.MODE_PLAY) return; // ONLY WHEN PLAYING
         _controlsPressed = false;
     });
     var _listenerReset = subscribe("model/reset", function(){
         self.value = self.init;
+    });
+    var _listenerMode = subscribe("loopy/mode", function(){
+        _controlsVisible = false;
+        _controlsAlpha = 0;
+        _controlsDirection = 0;
+        _controlsSelected = false;
+        _controlsPressed = false;
     });
 
     //////////////////////////////////////
@@ -375,6 +381,7 @@ function Node(model, config){
         unsubscribe("mousedown",_listenerMouseDown);
         unsubscribe("mouseup",_listenerMouseUp);
         unsubscribe("model/reset",_listenerReset);
+        unsubscribe("loopy/mode",_listenerMode);
 
         // Remove from parent!
         model.removeNode(self);
