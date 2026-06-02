@@ -1,6 +1,5 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
     
     # If it's an 8-character alphanumeric ID
     RewriteCond %{REQUEST_FILENAME} !-f
