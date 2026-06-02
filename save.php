@@ -2,6 +2,25 @@
 
 $dir = 'models/';
 
+// Ensure models directory exists
+if (!is_dir($dir)) {
+    if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
+        http_response_code(500);
+        echo "Failed to create models directory";
+        exit;
+    }
+}
+
+// Ensure models directory is writable
+if (!is_writable($dir)) {
+    chmod($dir, 0777);
+    if (!is_writable($dir)) {
+        http_response_code(500);
+        echo "Models directory is not writable";
+        exit;
+    }
+}
+
 // Handle GET request (loading)
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
