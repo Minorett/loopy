@@ -183,8 +183,7 @@ function Sidebar(loopy){
             "<b style='font-size:1.4em'>LOOP español </b> (v2)<br>una herramienta para pensar sistemas complejos.<br><br>"+
 
             "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
-            "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span> "+
-            "<span class='mini_button' onclick='publish(\"modal\",[\"credits\"])'>créditos</span><br><br>"+
+            "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span><br><br>"+
             "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span><br><br>"+
 
             "<hr/><br>"+
@@ -194,7 +193,6 @@ function Sidebar(loopy){
             "<span class='mini_button' onclick='publish(\"save/png\")'>guardar como imagen (.png)</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"import/file\")'>cargar archivo</span> <br><br>"+
             "<span class='mini_button' onclick='publish(\"modal\",[\"embed\"])'>insertar en tu página web</span> <br><br>"+
-            "<span class='mini_button' onclick='publish(\"modal\",[\"save_gif\"])'>hacer un .gif</span> <br><br>"+
 
             "<hr/><br>"+
                 

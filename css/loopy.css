@@ -508,11 +508,49 @@ MODAL
         left: 50% !important;
         transform: translateX(-50%);
         bottom: 80px; /* Avoid overlap with grid toggle and logo */
+        width: 250px !important;
+        height: auto !important;
     }
 
     #playbar[fullscreen=yes] {
         left: 50% !important;
         transform: translateX(-50%);
+    }
+
+    .play_button_label {
+        display: none !important;
+    }
+
+    #playbar .component_button {
+        width: 50px !important;
+        height: 50px !important;
+        position: static !important;
+        margin: 5px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 0 !important;
+    }
+
+    #playbar > div {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    /* PlaySlider container */
+    #playbar > div > div:not(.component_button) {
+        width: 100% !important;
+        position: relative !important;
+        margin-top: 10px !important;
+        height: 30px !important;
+    }
+
+    #playbar .play_slider {
+        width: calc(100% - 60px) !important;
+        left: 30px !important;
+        position: absolute !important;
     }
 
     #toolbar {
