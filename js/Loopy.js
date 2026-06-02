@@ -18,6 +18,11 @@ function Loopy(config){
     var self = this;
     self.config = config;
 
+    // Application base path (absolute from domain root)
+    var path = window.location.pathname.replace(/index\.html$/, "");
+    self.base = path.replace(/\/([a-zA-Z0-9]{8})\/?$/, "/");
+    if(self.base.charAt(self.base.length-1) != "/") self.base += "/";
+
     // Loopy: EMBED???
     self.embedded = _getParameterByName("embed");
     self.embedded = !!parseInt(self.embedded); // force to Boolean
@@ -274,9 +279,7 @@ function Loopy(config){
         // Create link
         var dataString = self.model.serialize();
         var uri = dataString; // encodeURIComponent(dataString);
-        var base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
-        base = base.replace(/\/([a-zA-Z0-9]{8})\/?$/, "/");
-        if(base.charAt(base.length-1) != "/") base += "/";
+        var base = window.location.origin + self.base;
         var historyLink = base+"?data="+uri;
         var link;
         if(embed){
@@ -309,14 +312,17 @@ function Loopy(config){
         // 2. Load from short ID
         var id = _getParameterByName("id");
         if(!id){
-            // Try to get from pathname (8-char alphanumeric at the end)
+            // Try to get from pathname (8-char alphanumeric after the base path)
             var path = window.location.pathname;
-            var match = path.match(/\/([a-zA-Z0-9]{8})\/?$/);
-            if(match) id = match[1];
+            if(path.length > self.base.length){
+                var relative = path.substring(self.base.length);
+                var match = relative.match(/^([a-zA-Z0-9]{8})/);
+                if(match) id = match[1];
+            }
         }
 
         if(id){
-            fetch("save.php?id="+id)
+            fetch(self.base + "save.php?id="+id)
                 .then(function(response){
                     if(response.ok) return response.text();
                     throw new Error("Model not found");

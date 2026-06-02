@@ -83,7 +83,7 @@ function Modal(loopy){
         page.height = 570;
         var iframe = page.addComponent(new ModalIframe({
             page: page,
-            src: "pages/examples/",
+            src: loopy.base + "pages/examples/",
             width: 640,
             height: 520
         }));
@@ -98,7 +98,7 @@ function Modal(loopy){
         page.height = 430;
         page.addComponent(new ModalIframe({
             page: page,
-            src: "pages/howto.html",
+            src: loopy.base + "pages/howto.html",
             width: 500,
             height: 350
         }));
@@ -121,7 +121,7 @@ function Modal(loopy){
         page.height = 550;
         page.addComponent(new ModalIframe({
             page: page,
-            src: "pages/credits/",
+            src: loopy.base + "pages/credits/",
             width: 660,
             height: 500
         }))
@@ -147,7 +147,7 @@ function Modal(loopy){
 
             // Fetch short link
             var data = loopy.model.serialize();
-            fetch("save.php", {
+            fetch(loopy.base + "save.php", {
                 method: "POST",
                 body: data
             })
@@ -156,9 +156,7 @@ function Modal(loopy){
                 return response.text();
             })
             .then(function(id){
-                var base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
-                base = base.replace(/\/([a-zA-Z0-9]{8})\/?$/, "/");
-                if(base.charAt(base.length-1) != "/") base += "/";
+                var base = window.location.origin + loopy.base;
                 var shortLink = base + id;
                 shortOutput.output(shortLink);
                 shortOutput.dom.select();
@@ -273,7 +271,7 @@ function Modal(loopy){
         page.height = 400;
         page.addComponent(new ModalIframe({
             page: page,
-            src: "pages/gif.html",
+            src: loopy.base + "pages/gif.html",
             width: 500,
             height: 350
         }))
