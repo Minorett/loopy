@@ -274,7 +274,9 @@ function Loopy(config){
         // Create link
         var dataString = self.model.serialize();
         var uri = dataString; // encodeURIComponent(dataString);
-        var base = window.location.origin + window.location.pathname;
+        var base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+        base = base.replace(/\/([a-zA-Z0-9]{8})\/?$/, "/");
+        if(base.charAt(base.length-1) != "/") base += "/";
         var historyLink = base+"?data="+uri;
         var link;
         if(embed){
@@ -309,7 +311,7 @@ function Loopy(config){
         if(!id){
             // Try to get from pathname (8-char alphanumeric at the end)
             var path = window.location.pathname;
-            var match = path.match(/\/([a-zA-Z0-9]{8})$/);
+            var match = path.match(/\/([a-zA-Z0-9]{8})\/?$/);
             if(match) id = match[1];
         }
 
