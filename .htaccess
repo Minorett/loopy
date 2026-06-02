@@ -4,5 +4,5 @@
     # If it's an 8-character alphanumeric ID
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^([a-zA-Z0-9]{8})$ index.html?id=$1 [L,QSA]
+    RewriteRule ^([a-zA-Z0-9]{8})/?$ index.html?id=$1 [L,QSA]
 </IfModule>
