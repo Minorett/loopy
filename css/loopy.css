@@ -96,6 +96,10 @@ div[big=yes] .play_button_icon{
 div[big=yes] .play_button_label{
     top: -3px;
 }
+#playbar .component_button[big=yes]{
+    font-size: 28px;
+    height: 35px;
+}
 
 
 
@@ -518,25 +522,34 @@ MODAL
     }
 
     .play_button_label {
-        display: none !important;
+        display: inline-block;
     }
 
     #playbar .component_button {
-        width: 50px !important;
-        height: 50px !important;
+        width: auto !important;
+        height: 45px !important;
         position: static !important;
         margin: 5px !important;
         display: inline-flex !important;
         justify-content: center !important;
         align-items: center !important;
-        padding: 0 !important;
+        padding: 0 15px !important;
+        font-size: 16px !important;
+    }
+
+    #playbar .component_button[big=yes] {
+        font-size: 20px !important;
     }
 
     #playbar > div {
-        display: flex !important;
+        display: none;
         flex-wrap: wrap !important;
         justify-content: center !important;
         align-items: center !important;
+    }
+
+    #playbar > div.visible {
+        display: flex !important;
     }
 
     /* PlaySlider container */
