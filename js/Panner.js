@@ -6,8 +6,13 @@
         self.loopy = loopy;
 
         var canvasses = document.getElementById('canvasses');
-        var MIN_SCALE = 0.55;
-        var MAX_SCALE = 2.0;
+
+        var getMinScale = function() {
+            return window.innerWidth <= 768 ? 0.1 : 0.55;
+        };
+        var getMaxScale = function() {
+            return window.innerWidth <= 768 ? 5.0 : 2.0;
+        };
 
         // Prevent context menu to allow right-click panning
         canvasses.addEventListener('contextmenu', function(e) {
@@ -81,7 +86,7 @@
             var delta = e.deltaY || e.detail || -e.wheelDelta;
             var zoomFactor = delta > 0 ? 0.9 : 1.1;
             var newScale = loopy.offsetScale * zoomFactor;
-            newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+            newScale = Math.max(getMinScale(), Math.min(getMaxScale(), newScale));
 
             // Zoom toward mouse position
             var mouseX = Mouse.canvasX; 
@@ -97,7 +102,6 @@
 
         // --- MOBILE PAN & PINCH ---
         var lastTouchDistance = 0;
-        var initialPinchScale = 1;
         var lastTouchCenter = null;
 
         function getTouchDistance(touch1, touch2) {
@@ -117,7 +121,6 @@
             if (e.touches.length === 2) {
                 e.preventDefault();
                 lastTouchDistance = getTouchDistance(e.touches[0], e.touches[1]);
-                initialPinchScale = loopy.offsetScale;
                 lastTouchCenter = getTouchCenter(e.touches[0], e.touches[1]);
             }
         }, { passive: false });
@@ -144,8 +147,8 @@
 
                 // 2. Pinch Zoom
                 var scaleFactor = currentDistance / lastTouchDistance;
-                var newScale = initialPinchScale * scaleFactor;
-                newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+                var newScale = loopy.offsetScale * scaleFactor;
+                newScale = Math.max(getMinScale(), Math.min(getMaxScale(), newScale));
                 
                 var scaleChange = newScale / loopy.offsetScale;
                 loopy.offsetX = touchCenterX - (touchCenterX - loopy.offsetX) * scaleChange;
