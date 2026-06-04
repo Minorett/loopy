@@ -6,8 +6,8 @@
         self.loopy = loopy;
 
         var canvasses = document.getElementById('canvasses');
-        var MIN_SCALE = 0.55;
-        var MAX_SCALE = 2.0;
+        var MIN_SCALE = 0.1;
+        var MAX_SCALE = 5.0;
 
         // Prevent context menu to allow right-click panning
         canvasses.addEventListener('contextmenu', function(e) {
@@ -97,7 +97,6 @@
 
         // --- MOBILE PAN & PINCH ---
         var lastTouchDistance = 0;
-        var initialPinchScale = 1;
         var lastTouchCenter = null;
 
         function getTouchDistance(touch1, touch2) {
@@ -117,7 +116,6 @@
             if (e.touches.length === 2) {
                 e.preventDefault();
                 lastTouchDistance = getTouchDistance(e.touches[0], e.touches[1]);
-                initialPinchScale = loopy.offsetScale;
                 lastTouchCenter = getTouchCenter(e.touches[0], e.touches[1]);
             }
         }, { passive: false });
@@ -144,7 +142,7 @@
 
                 // 2. Pinch Zoom
                 var scaleFactor = currentDistance / lastTouchDistance;
-                var newScale = initialPinchScale * scaleFactor;
+                var newScale = loopy.offsetScale * scaleFactor;
                 newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
                 
                 var scaleChange = newScale / loopy.offsetScale;
