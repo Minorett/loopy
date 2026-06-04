@@ -451,7 +451,7 @@ function Edge(model, config){
     // HELPER METHODS ////////////////////
     //////////////////////////////////////
 
-    var HIT_THRESHOLD = 12;
+    var HIT_THRESHOLD = 20;
 
     self.isPointOnLabel = function(x, y){
         // TOTAL HACK: radius based on TOOL BEING USED.
@@ -497,18 +497,33 @@ function Edge(model, config){
         // Compute angle of point relative to arc center
         var pointAngle = Math.atan2(localY - cy, localX - cx);
 
+        // Angular padding to include arrow head and base
+        var angularPadding = (HIT_THRESHOLD * 2) / self.r;
+
         // Normalize begin/end to [0, 2*PI) for angular range check
         var b = ((self.begin % Math.TAU) + Math.TAU) % Math.TAU;
         var e = ((self.end % Math.TAU) + Math.TAU) % Math.TAU;
         var p = ((pointAngle % Math.TAU) + Math.TAU) % Math.TAU;
 
-        // Handle angular wrap-around. If the arc does not cross 0, sweep = e - b.
-        // If the arc crosses 0 (e < b), sweep wraps around.
+        // Apply angular padding based on arc direction.
+        // For clockwise arcs (arc > 0), the angle increases from begin to end,
+        // so extend begin backward and end forward.
+        // For counter-clockwise arcs (arc < 0), the angle decreases from begin to end,
+        // so extend begin forward and end backward.
+        if(self.arc > 0){
+            b = ((b - angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
+            e = ((e + angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
+        }else{
+            b = ((b + angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
+            e = ((e - angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
+        }
+
+        // Handle angular wrap-around at 2π.
+        // If b <= e, the arc does not cross 0 and valid angles are [b, e].
+        // If b > e, the arc wraps around and valid angles are [b, 2π) ∪ [0, e].
         if(b <= e){
-            // No wrap
             if(p < b || p > e) return false;
         }else{
-            // Wrap: valid angles are [b, 2*PI) ∪ [0, e]
             if(p < b && p > e) return false;
         }
 
