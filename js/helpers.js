@@ -168,7 +168,9 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
 
     };
     var _onmouseup = function(event){
-        if(event.changedTouches) event.preventDefault();
+        if(event.changedTouches && target.contains(event.target)){
+            event.preventDefault();
+        }
         var _fakeEvent = {};
         onmouseup(_fakeEvent);
     };
