@@ -88,6 +88,16 @@ function Node(model, config){
     var _listenerMouseDown = subscribe("mousedown",function(){
 
         if(self.loopy.mode!=Loopy.MODE_PLAY) return; // ONLY WHEN PLAYING
+
+        // On touch screens, mousemove may not fire before mousedown (tap).
+        // Perform an immediate hit test if no node was pre-selected.
+        if(!_controlsSelected){
+            _controlsSelected = self.isPointInNode(Mouse.x, Mouse.y);
+            if(_controlsSelected){
+                _controlsDirection = (Mouse.y<self.y) ? 1 : -1;
+            }
+        }
+
         if(_controlsSelected) _controlsPressed = true;
 
         // IF YOU CLICKED ME...

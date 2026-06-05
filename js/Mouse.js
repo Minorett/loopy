@@ -12,6 +12,8 @@ Mouse.init = function(target){
         Mouse.button = event.button;
         Mouse.originalEvent = event.originalEvent;
         Mouse.startedOnTarget = true;
+        Mouse.canvasStartX = event.x;
+        Mouse.canvasStartY = event.y;
         publish("mousedown");
     };
     var _onmousemove = function(event){
@@ -28,7 +30,11 @@ Mouse.init = function(target){
         Mouse.x = mx;
         Mouse.y = my;
 
-        Mouse.moved = true;
+        // Allow a small jitter threshold (5px) so taps are still
+        // treated as clicks on touch screens.
+        var dx = event.x - (Mouse.canvasStartX || event.x);
+        var dy = event.y - (Mouse.canvasStartY || event.y);
+        if(dx*dx + dy*dy > 25) Mouse.moved = true;
         publish("mousemove");
 
     };
