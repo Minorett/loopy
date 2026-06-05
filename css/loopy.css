@@ -18,6 +18,7 @@ canvas{
     top:0; left:0;
     width: calc(100% - 300px);
     height: 100%;
+    touch-action: none;
 }
 #canvasses[fullscreen=yes]{
     width: 100%;
