@@ -468,7 +468,11 @@ function Model(loopy){
 
     };
     subscribe("mouseclick", function(){
-        if(window.innerWidth > 768) _editCallback();
+        if(window.innerWidth > 768){
+            _editCallback();
+        } else {
+            if(self.loopy.tool == Loopy.TOOL_LABEL) _editCallback();
+        }
     });
     subscribe("mousedblclick", function(){
         if(window.innerWidth <= 768) _editCallback();
