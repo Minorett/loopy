@@ -179,6 +179,10 @@ function Model(loopy){
     });
 
     // OR RESIZE or RESET
+    subscribe("view/changed", function(){
+        _canvasDirty = true;
+        drawCountdown = drawCountdownFull;
+    });
     subscribe("resize", function(){
         _canvasDirty = true;
         drawCountdown = drawCountdownFull;
