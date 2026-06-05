@@ -644,3 +644,10 @@ MODAL
         left: 60px;
     }
 }
+
+@media (hover: none) {
+    [data-balloon]::before,
+    [data-balloon]::after {
+        display: none !important;
+    }
+}
