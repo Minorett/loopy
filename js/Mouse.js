@@ -34,7 +34,13 @@ Mouse.init = function(target){
         // treated as clicks on touch screens.
         var dx = event.x - (Mouse.canvasStartX || event.x);
         var dy = event.y - (Mouse.canvasStartY || event.y);
-        if(dx*dx + dy*dy > 25) Mouse.moved = true;
+        var dist2 = dx*dx + dy*dy;
+        if(dist2 > 25) {
+            if (!Mouse.moved) console.log("Movement detected beyond jitter threshold, treating as DRAG");
+            Mouse.moved = true;
+        } else {
+            if (Mouse.pressed) console.log("Movement ignored (jitter threshold): " + Math.sqrt(dist2).toFixed(2) + "px");
+        }
         publish("mousemove");
 
     };
