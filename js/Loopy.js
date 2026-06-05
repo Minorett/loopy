@@ -147,9 +147,15 @@ function Loopy(config){
     self.dirty = false;
 
     // YOU'RE A DIRTY BOY
+    var _autosaveTimeout = null;
     subscribe("model/changed", function(){
         if(!self.embedded) self.dirty = true;
-        if(!self.embedded) localStorage.setItem("loopy_autosave", self.model.serialize());
+        if(!self.embedded){
+            clearTimeout(_autosaveTimeout);
+            _autosaveTimeout = setTimeout(function(){
+                localStorage.setItem("loopy_autosave", self.model.serialize());
+            }, 500);
+        }
     });
 
     subscribe("export/file", function(){
@@ -353,7 +359,6 @@ function Loopy(config){
             self.model.deserialize(decodeURIComponent(_blankData));
         }
     };
-
 
     ///////////////////////////
     //////// EMBEDDED? ////////
