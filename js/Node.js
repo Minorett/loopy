@@ -377,11 +377,11 @@ function Node(model, config){
     self.kill = function(){
 
         // Kill Listeners!
-        unsubscribe("mousemove",_listenerMouseMove);
-        unsubscribe("mousedown",_listenerMouseDown);
-        unsubscribe("mouseup",_listenerMouseUp);
-        unsubscribe("model/reset",_listenerReset);
-        unsubscribe("loopy/mode",_listenerMode);
+        unsubscribe(_listenerMouseMove);
+        unsubscribe(_listenerMouseDown);
+        unsubscribe(_listenerMouseUp);
+        unsubscribe(_listenerReset);
+        unsubscribe(_listenerMode);
 
         // Remove from parent!
         model.removeNode(self);

@@ -437,7 +437,7 @@ function Edge(model, config){
     self.kill = function(){
 
         // Kill Listeners!
-        unsubscribe("model/reset",_listenerReset);
+        unsubscribe(_listenerReset);
 
         // Remove from parent!
         model.removeEdge(self);
