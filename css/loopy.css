@@ -646,7 +646,7 @@ MODAL
     }
 }
 
-@media (hover: none) {
+@media (pointer: coarse) {
     [data-balloon]::before,
     [data-balloon]::after {
         opacity: 0 !important;
