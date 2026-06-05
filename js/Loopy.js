@@ -343,10 +343,15 @@ function Loopy(config){
         // 3. Autosave or blank start
         var autosaved = localStorage.getItem("loopy_autosave");
         if(autosaved){
-            self.model.deserialize(autosaved);
+            try{
+                self.model.deserialize(decodeURIComponent(autosaved));
+            }catch(e){
+                localStorage.removeItem("loopy_autosave");
+                self.model.deserialize(decodeURIComponent(_blankData));
+            }
         }else{
             self.model.deserialize(decodeURIComponent(_blankData));
-}
+        }
     };
 
 
