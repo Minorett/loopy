@@ -149,6 +149,7 @@ function Loopy(config){
     // YOU'RE A DIRTY BOY
     subscribe("model/changed", function(){
         if(!self.embedded) self.dirty = true;
+        if(!self.embedded) localStorage.setItem("loopy_autosave", self.model.serialize());
     });
 
     subscribe("export/file", function(){
@@ -339,8 +340,13 @@ function Loopy(config){
             return;
         }
 
-        // 3. Default: Blank start
-        self.model.deserialize(decodeURIComponent(_blankData));
+        // 3. Autosave or blank start
+        var autosaved = localStorage.getItem("loopy_autosave");
+        if(autosaved){
+            self.model.deserialize(autosaved);
+        }else{
+            self.model.deserialize(decodeURIComponent(_blankData));
+}
     };
 
 
