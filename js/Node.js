@@ -98,7 +98,10 @@ function Node(model, config){
             }
         }
 
-        if(_controlsSelected) _controlsPressed = true;
+        if(_controlsSelected) {
+            _controlsPressed = true;
+            console.log("Node activated via " + (Mouse.originalEvent && Mouse.originalEvent.type === "touchstart" ? "tap" : "click"));
+        }
 
         // IF YOU CLICKED ME...
         if(_controlsPressed){

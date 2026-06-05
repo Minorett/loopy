@@ -135,12 +135,19 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
 
     // WRAP THEM CALLBACKS
     var _onmousedown = function(event){
-        if (event.type === "touchstart" && event.cancelable) event.preventDefault();
-        var _fakeEvent = _onmousemove(event);
-        if (!_fakeEvent) return;
-        _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
-        _fakeEvent.originalEvent = event;
-        onmousedown(_fakeEvent);
+        try{
+            if (event.type === "touchstart") {
+                console.log("Touch Start Event detected");
+                if (event.cancelable) event.preventDefault();
+            }
+            var _fakeEvent = _onmousemove(event);
+            if (!_fakeEvent) return;
+            _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
+            _fakeEvent.originalEvent = event;
+            onmousedown(_fakeEvent);
+        } catch(e) {
+            console.error("Error in _onmousedown:", e);
+        }
     };
     var _onmousemove = function(event){
         
@@ -155,7 +162,10 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
             var offset = _getTotalOffset(target);
             _fakeEvent.x = event.changedTouches[0].clientX - offset.left;
             _fakeEvent.y = event.changedTouches[0].clientY - offset.top;
-            if (event.type === "touchmove" && event.cancelable) event.preventDefault();
+            if (event.type === "touchmove") {
+                console.log("Touch Move Event detected at: " + _fakeEvent.x + ", " + _fakeEvent.y);
+                if (event.cancelable) event.preventDefault();
+            }
         }else{
             // Not Touch
             var offset = _getTotalOffset(target);
@@ -169,7 +179,10 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
 
     };
     var _onmouseup = function(event){
-        if (event.type === "touchend" && event.cancelable) event.preventDefault();
+        if (event.type === "touchend") {
+            console.log("Touch End Event detected");
+            if (event.cancelable) event.preventDefault();
+        }
         var _fakeEvent = {};
         onmouseup(_fakeEvent);
     };
@@ -180,9 +193,9 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
     document.body.addEventListener("mouseup", _onmouseup);
 
     // TOUCH.
-    target.addEventListener("touchstart",_onmousedown,false);
-    target.addEventListener("touchmove",_onmousemove,false);
-    document.body.addEventListener("touchend",_onmouseup,false);
+    target.addEventListener("touchstart",_onmousedown,{passive:false});
+    target.addEventListener("touchmove",_onmousemove,{passive:false});
+    document.body.addEventListener("touchend",_onmouseup,{passive:false});
 
 }
 
