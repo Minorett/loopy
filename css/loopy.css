@@ -1,0 +1,646 @@
+body{
+    margin:0;
+    background: #fff;
+
+    font-family: 'Figtree', sans-serif;
+    font-weight: normal;
+    font-size: 20px;
+
+    overflow: hidden;
+}
+canvas{
+    position:absolute;
+    top:0; left:0;
+}
+
+#canvasses{
+    position:absolute;
+    top:0; left:0;
+    width: calc(100% - 300px);
+    height: 100%;
+}
+#canvasses[fullscreen=yes]{
+    width: 100%;
+}
+#canvasses[cursor=ink]{
+    cursor: url('cursors/ink.png') 0 30, auto;
+}
+#canvasses[cursor=drag]{
+    cursor: url('cursors/drag.png') 15 15, auto;
+}
+#canvasses[cursor=erase]{
+    cursor: url('cursors/erase.png') 5 25, auto;
+}
+#canvasses[cursor=label]{
+    cursor: url('cursors/label.png') 15 15, auto;
+}
+
+
+
+/**********
+ PLAY CONTROLS
+**********/
+
+#playbar{
+    position: absolute;
+    bottom: 15px;
+    left: calc(50% - 275px); /* 50% - half of (playbar width + sidebar width)*/
+
+    width: 250px;
+    height: 75px;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#playbar[fullscreen=yes]{
+    left: calc(50% - 125px); /* 50% - half of (playbar width)*/
+}
+#playbar .component_button{
+    position: absolute;
+    bottom: 0;
+    width: 230px;
+    height: 25px;
+    background: #444;
+}
+#playbar .component_button:hover{
+    background: #555;
+}
+#playbar .play_slider{
+    width: 190px;
+    position: absolute;
+    left: 30px;
+    margin: 0;
+}
+.play_button_icon{
+    width: 25px;
+    height: 25px;
+    background-image: url(icons/controls.png);
+    display: inline-block;
+    background-size: 400% 100%;
+}
+.play_button_icon[icon="0"]{ background-position: 0 0; }
+.play_button_icon[icon="1"]{ background-position: -25px 0; }
+.play_button_icon[icon="2"]{ background-position: -50px 0; }
+.play_button_icon[icon="3"]{ background-position: -75px 0; }
+.play_button_label{
+    display: inline-block;
+    position: relative;
+    top: -5px;
+}
+div[big=yes] .play_button_icon{
+    width: 30px;
+    height: 30px;
+}
+div[big=yes] .play_button_label{
+    top: -3px;
+}
+#playbar .component_button[big=yes]{
+    font-size: 28px;
+    height: 35px;
+}
+
+
+
+/**********
+ TOOLBAR 
+**********/
+
+#toolbar{
+    position: absolute;
+    left: 0px;
+    top: calc(33% - 142.5px); /* 33% - half of toolbar height */
+
+    width:75px; height:280px;
+    padding: 5px;
+    background-color: #ddd;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#toolbar[mode=play]{
+    display: none;
+}
+
+.toolbar_button{
+    width:60px; height:60px;
+    margin: 5px;
+    border: 2px solid #ddd;
+    cursor: pointer;
+    background-size: 100% 100%;
+}
+.toolbar_button[selected=yes]{
+    border: 2px solid #888;
+    background-color: #999;
+}
+
+/**********
+ SIDEBAR 
+**********/
+
+#sidebar{
+    position: absolute;
+    top:0; right:0;
+    width: 300px;
+    height: 100%;
+    background: #ddd;
+
+    font-weight: 100;
+    font-size: 17px;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#sidebar > div{
+    margin: 25px;
+}
+#sidebar > div > div{
+    margin-bottom: 20px;
+}
+#sidebar[mode=play]{
+    background: #222;
+    color: #777;
+}
+#sidebar .mini_button{
+    background: #999;
+    color: #fff;
+    padding: 3px 5px;
+    border-radius: 2px;
+    font-size: 16px;
+
+    cursor: pointer;
+}
+#sidebar .mini_button:hover{
+    background: #aaa;
+}
+#sidebar .mini_button[active=yes]{
+    background: #EA3E3E;
+}
+#sidebar[mode=play] .mini_button{
+    background: #555;
+    color: #111;
+}
+#sidebar[mode=play] .mini_button:hover{
+    background: #666;
+}
+#sidebar a{ color: #777; }
+#sidebar a:hover{ color: #999; }
+#sidebar hr{
+    border: none;
+    border-bottom: 2px solid rgba(150,150,150,0.5);
+    width: 300px;
+    position: relative;
+    left:-25px;
+    margin: 10px 0;
+}
+.component_input{
+    border: none;
+    
+    width:calc(100% - 10px);
+    height:22px;
+    padding: 5px;
+    
+    font-size: 20px;
+    font-weight: 100;
+}
+.component_textarea{
+    border: none;
+    width:calc(100% - 10px);
+    height: 100px;
+    padding: 5px;
+    font-size: 16px;
+    font-weight: 100;
+}
+.component_output{
+    border: 1px solid #aaa;
+    width:100%;
+    background: #ccc;
+    color: #666;
+    font-size: 15px;
+    font-weight: 100;
+}
+.component_slider{
+    position: relative;
+    width: 250px;
+    height: 52px;
+}
+.component_slider_graphic{
+    position: absolute;
+    width: 250px;
+    height: 40px;
+    cursor: ew-resize;
+}
+.component_slider_native {
+    width: 250px;
+    margin: 0;
+    cursor: ew-resize;
+}
+.component_slider_indicators {
+    display: flex;
+    justify-content: space-between;
+    width: 250px;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 2px;
+}
+.component_slider_pointer{
+    position: absolute;
+    top: 42px;
+    width: 15px;
+    height: 10px;
+}
+.component_label{
+    margin-bottom: 5px;
+}
+.component_button{
+
+    width: calc(100% - 20px);
+    background: #888;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 100;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+
+    cursor: pointer;
+}
+.component_button:hover{
+    background: #999;
+}
+.component_button[header=yes]{
+    position: absolute;
+    top:0; left:0;
+    width: 280px;
+    background: #222;
+    border-radius: 0px;
+    color: #888;
+}
+.component_button[header=yes]:hover{
+    background: #333;
+}
+
+.component_choices {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+.component_choice {
+    flex: 1;
+    background: #888;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    margin: 0 2px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.component_choice:hover {
+    background: #999;
+}
+.component_choice[active=yes] {
+    background: #EA3E3E;
+}
+
+
+
+/**********
+
+MODAL
+
+**********/
+
+#modal_container{
+    display: none;
+    position: absolute;
+    width: 100%; height: 100%;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#modal_container[show=yes]{
+    display: block;
+}
+#modal_bg{
+    position: absolute;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+}
+#modal{
+
+    position: absolute;
+    top:0; left:0; right:0; bottom:0;
+    margin: auto;
+
+    width: 600px; height: 300px;
+    padding: 10px;
+    background: #ddd;
+}
+#modal_close{
+    width: 120px;
+    font-weight: 100;
+    color: #777;
+    cursor: pointer;
+}
+#modal_close:hover{
+    color: #888;
+}
+#modal_page{
+    margin: 15px;
+    font-size: 25px;
+    font-weight: 100;
+    color: #333;
+}
+#modal iframe{
+    border: none;
+}
+
+/**********
+ GRID OVERLAY
+**********/
+
+#grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#grid-overlay.show {
+    display: grid;
+}
+
+.grid-cell {
+    border: 1px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    line-height: 1.2;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+/* Mobile responsive grid */
+@media (max-width: 768px) {
+    .grid-cell {
+        font-size: clamp(8px, 3vw, 16px);
+        padding: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .grid-cell {
+        font-size: clamp(7px, 2.5vw, 12px);
+        padding: 4px;
+    }
+}
+
+#grid-toggle {
+    position: fixed;
+    bottom: 200px; /* Above the logo link */
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #222;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+    z-index: 1000;
+}
+
+#grid-toggle:hover {
+    background: #444;
+}
+
+#sidebar-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #222;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: none; /* Only show on mobile */
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+    z-index: 1002;
+}
+
+#sidebar-toggle:hover {
+    background: #444;
+}
+
+#recenter-button {
+    position: fixed;
+    bottom: 260px; /* Above the grid toggle button */
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #FAFAF3;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+    z-index: 1000;
+}
+
+#recenter-button:hover {
+    background: #E6E6E6;
+}
+
+@media (max-width: 768px) {
+    #canvasses {
+        width: 100% !important;
+    }
+
+    #sidebar {
+        position: fixed;
+        width: 300px;
+        z-index: 1001;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    }
+
+    #sidebar.show {
+        transform: translateX(0);
+    }
+
+    #sidebar-toggle {
+        display: flex;
+    }
+
+    #playbar {
+        left: 50% !important;
+        transform: translateX(-50%);
+        bottom: 80px; /* Avoid overlap with grid toggle and logo */
+        width: 250px !important;
+        height: auto !important;
+    }
+
+    #playbar[fullscreen=yes] {
+        left: 50% !important;
+        transform: translateX(-50%);
+    }
+
+    .play_button_label {
+        display: inline-block;
+    }
+
+    #playbar .component_button {
+        width: auto !important;
+        height: 45px !important;
+        position: static !important;
+        margin: 5px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 0 15px !important;
+        font-size: 16px !important;
+    }
+
+    #playbar .component_button[big=yes] {
+        font-size: 20px !important;
+    }
+
+    #playbar > div {
+        display: none;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    #playbar > div.visible {
+        display: flex !important;
+    }
+
+    /* PlaySlider container */
+    #playbar > div > div:not(.component_button) {
+        width: 100% !important;
+        position: relative !important;
+        margin-top: 10px !important;
+        height: 30px !important;
+    }
+
+    #playbar .play_slider {
+        width: calc(100% - 60px) !important;
+        left: 30px !important;
+        position: absolute !important;
+    }
+
+    #toolbar {
+        top: 20px;
+        left: 10px;
+        height: auto;
+        padding: 2px;
+        width: 65px;
+    }
+    
+    .toolbar_button {
+        width: 50px;
+        height: 50px;
+        margin: 5px auto;
+    }
+
+    #modal {
+        width: 90% !important;
+        height: auto !important;
+        min-height: 200px;
+        max-height: 90%;
+        left: 5% !important;
+        right: 5% !important;
+        margin: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%);
+        overflow-y: auto;
+    }
+
+    #modal iframe {
+        width: 100% !important;
+        height: 400px !important;
+    }
+
+    #modal_page div, #modal_page iframe {
+        float: none !important;
+        width: 100% !important;
+    }
+
+    #sidebar .mini_button {
+        padding: 8px 12px; /* Larger touch targets */
+        margin-bottom: 5px;
+        display: inline-block;
+    }
+    
+    #grid-toggle {
+        bottom: 20px;
+        right: auto;
+        left: 20px;
+    }
+
+    #recenter-button {
+        bottom: 80px;
+        right: auto;
+        left: 20px;
+    }
+}
+
+/* Button tags - temporary labels for grid-toggle and recenter-button */
+.button-tag {
+    position: absolute;
+    right: 60px;
+    background: #4a90e2;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
+
+@media (max-width: 768px) {
+    .button-tag {
+        right: auto;
+        left: 60px;
+    }
+}
