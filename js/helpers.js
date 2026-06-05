@@ -133,13 +133,30 @@ function _getTotalOffset(target){
 
 function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
 
+    // Prevent double-processing of touch events that generate synthetic mouse events
+    var _lastTouchTime = 0;
+    var _SYNTHETIC_THRESHOLD = 500; // ms
+
     // WRAP THEM CALLBACKS
     var _onmousedown = function(event){
         try{
-            if (event.type === "touchstart") {
-                console.log("Touch Start Event detected");
+            var isTouch = (event.type === "touchstart");
+            var now = Date.now();
+
+            if (isTouch) {
+                _lastTouchTime = now;
+                console.log("[DEBUG] Touch Start Event detected (native touch)");
                 if (event.cancelable) event.preventDefault();
+            } else {
+                // Check if this mousedown is synthetic (triggered by a recent touch)
+                var isSynthetic = (now - _lastTouchTime < _SYNTHETIC_THRESHOLD);
+                if (isSynthetic) {
+                    console.log("[DEBUG] Synthetic mousedown detected and skipped (within " + (now - _lastTouchTime) + "ms of touch)");
+                    return; // Skip synthetic mouse events to prevent double-processing
+                }
+                console.log("[DEBUG] Native mouse event detected");
             }
+
             var _fakeEvent = _onmousemove(event);
             if (!_fakeEvent) return;
             _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
@@ -163,7 +180,7 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
             _fakeEvent.x = event.changedTouches[0].clientX - offset.left;
             _fakeEvent.y = event.changedTouches[0].clientY - offset.top;
             if (event.type === "touchmove") {
-                console.log("Touch Move Event detected at: " + _fakeEvent.x + ", " + _fakeEvent.y);
+                console.log("[DEBUG] Touch Move Event detected at: " + _fakeEvent.x + ", " + _fakeEvent.y);
                 if (event.cancelable) event.preventDefault();
             }
         }else{
@@ -180,7 +197,7 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
     };
     var _onmouseup = function(event){
         if (event.type === "touchend") {
-            console.log("Touch End Event detected");
+            console.log("[DEBUG] Touch End Event detected");
             if (event.cancelable) event.preventDefault();
         }
         var _fakeEvent = {};

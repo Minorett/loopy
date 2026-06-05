@@ -14,6 +14,14 @@ Mouse.init = function(target){
         Mouse.startedOnTarget = true;
         Mouse.canvasStartX = event.x;
         Mouse.canvasStartY = event.y;
+
+        // Log screen & model coordinates at mousedown for touch/click diagnostics
+        var mode = (window.loopy && loopy.mode !== undefined) ? loopy.mode : "?";
+        var modelX = (event.x - (loopy ? loopy.offsetX : 0)) / (loopy ? loopy.offsetScale : 1);
+        var modelY = (event.y - (loopy ? loopy.offsetY : 0)) / (loopy ? loopy.offsetScale : 1);
+        var eventType = (event.originalEvent && event.originalEvent.type) || "unknown";
+        console.log("[DEBUG] mousedown | mode=" + mode + " | screen=(" + event.x.toFixed(1) + "," + event.y.toFixed(1) + ") | model=(" + modelX.toFixed(1) + "," + modelY.toFixed(1) + ") | type=" + eventType);
+
         publish("mousedown");
     };
     var _onmousemove = function(event){
@@ -30,16 +38,21 @@ Mouse.init = function(target){
         Mouse.x = mx;
         Mouse.y = my;
 
+        // Log screen & model coordinates for mousemove (concise format to reduce spam)
+        var mode = (window.loopy && loopy.mode !== undefined) ? loopy.mode : "?";
+        var eventType = (event.originalEvent && event.originalEvent.type) || "unknown";
+        console.log("[DEBUG] mousemove | mode=" + mode + " | screen=(" + event.x.toFixed(1) + "," + event.y.toFixed(1) + ") | model=(" + mx.toFixed(1) + "," + my.toFixed(1) + ") | type=" + eventType);
+
         // Allow a small jitter threshold (5px) so taps are still
         // treated as clicks on touch screens.
         var dx = event.x - (Mouse.canvasStartX || event.x);
         var dy = event.y - (Mouse.canvasStartY || event.y);
         var dist2 = dx*dx + dy*dy;
         if(dist2 > 25) {
-            if (!Mouse.moved) console.log("Movement detected beyond jitter threshold, treating as DRAG");
+            if (!Mouse.moved) console.log("[DEBUG] Movement detected beyond jitter threshold, treating as DRAG");
             Mouse.moved = true;
         } else {
-            if (Mouse.pressed) console.log("Movement ignored (jitter threshold): " + Math.sqrt(dist2).toFixed(2) + "px");
+            if (Mouse.pressed) console.log("[DEBUG] Movement ignored (jitter threshold): " + Math.sqrt(dist2).toFixed(2) + "px");
         }
         publish("mousemove");
 

@@ -106,9 +106,19 @@ function Node(model, config){
         // IF YOU CLICKED ME...
         if(_controlsPressed){
 
+            // Check if _controlsDirection is ever 0 during activation
+            if (_controlsDirection === 0) {
+                console.warn("[DEBUG] WARNING: _controlsDirection is 0 during node activation for node '" + self.label + "'");
+            }
+
             // Change my value
             var delta = _controlsDirection*0.33; // HACK: hard-coded 0.33
             self.value += delta;
+
+            // Log activation details for touch/click diagnostics
+            var mode = (self.loopy && self.loopy.mode !== undefined) ? self.loopy.mode : "?";
+            var eventType = (Mouse.originalEvent && Mouse.originalEvent.type) || "unknown";
+            console.log("[DEBUG] Node activation | label='" + self.label + "' | _controlsDirection=" + _controlsDirection + " | delta=" + delta.toFixed(3) + " | value=" + self.value.toFixed(3) + " | mode=" + mode + " | eventType=" + eventType);
 
             // And also PROPAGATE THE DELTA
             self.sendSignal({
