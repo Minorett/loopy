@@ -12,6 +12,8 @@ Mouse.init = function(target){
         Mouse.button = event.button;
         Mouse.originalEvent = event.originalEvent;
         Mouse.startedOnTarget = true;
+        Mouse.startX = event.x;
+        Mouse.startY = event.y;
         publish("mousedown");
     };
     var _onmousemove = function(event){
@@ -28,7 +30,13 @@ Mouse.init = function(target){
         Mouse.x = mx;
         Mouse.y = my;
 
-        Mouse.moved = true;
+        // Movement threshold (slop) to avoid accidental drags from finger jitter
+        var dx = event.x - Mouse.startX;
+        var dy = event.y - Mouse.startY;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist > 8){
+            Mouse.moved = true;
+        }
         publish("mousemove");
 
     };

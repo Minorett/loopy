@@ -475,7 +475,7 @@ function Model(loopy){
         if(window.innerWidth > 768){
             _editCallback();
         } else {
-            if(self.loopy.tool == Loopy.TOOL_LABEL) _editCallback();
+            if(self.loopy.tool == Loopy.TOOL_LABEL || self.loopy.tool == Loopy.TOOL_DRAG) _editCallback();
         }
     });
     subscribe("mousedblclick", function(){
