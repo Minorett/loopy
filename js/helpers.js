@@ -137,6 +137,7 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
     var _onmousedown = function(event){
         if (event.type === "touchstart" && event.cancelable) event.preventDefault();
         var _fakeEvent = _onmousemove(event);
+        if (!_fakeEvent) return;
         _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
         _fakeEvent.originalEvent = event;
         onmousedown(_fakeEvent);
