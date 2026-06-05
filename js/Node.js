@@ -73,8 +73,11 @@ function Node(model, config){
         // ONLY WHEN PLAYING
         if(self.loopy.mode!=Loopy.MODE_PLAY) return;
 
+        // Use a larger hit area (20px buffer) for touch events to make node activation easier on mobile
+        var touchBuffer = (Mouse.originalEvent && (Mouse.originalEvent.type === 'touchmove' || Mouse.originalEvent.type === 'touchstart')) ? 20 : 0;
+
         // If moused over this, show it, or not.
-        _controlsSelected = self.isPointInNode(Mouse.x, Mouse.y);
+        _controlsSelected = self.isPointInNode(Mouse.x, Mouse.y, touchBuffer);
         if(_controlsSelected){
             _controlsVisible = true;
             self.loopy.showPlayTutorial = false;
@@ -89,10 +92,13 @@ function Node(model, config){
 
         if(self.loopy.mode!=Loopy.MODE_PLAY) return; // ONLY WHEN PLAYING
 
+        // Use a larger hit area (20px buffer) for touch events to make node activation easier on mobile
+        var touchBuffer = (Mouse.originalEvent && (Mouse.originalEvent.type === 'touchstart' || Mouse.originalEvent.type === 'touchmove')) ? 20 : 0;
+
         // On touch screens, mousemove may not fire before mousedown (tap).
         // Perform an immediate hit test if no node was pre-selected.
         if(!_controlsSelected){
-            _controlsSelected = self.isPointInNode(Mouse.x, Mouse.y);
+            _controlsSelected = self.isPointInNode(Mouse.x, Mouse.y, touchBuffer);
             if(_controlsSelected){
                 _controlsDirection = (Mouse.y<self.y) ? 1 : -1;
             }

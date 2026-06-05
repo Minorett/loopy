@@ -30,9 +30,9 @@ Mouse.init = function(target){
         Mouse.canvasX = event.x;
         Mouse.canvasY = event.y;
 
-        // DO THE INVERSE
-        var mx = (event.x - loopy.offsetX) / loopy.offsetScale;
-        var my = (event.y - loopy.offsetY) / loopy.offsetScale;
+        // DO THE INVERSE (safely check loopy exists)
+        var mx = (event.x - (window.loopy ? loopy.offsetX : 0)) / (window.loopy ? loopy.offsetScale : 1);
+        var my = (event.y - (window.loopy ? loopy.offsetY : 0)) / (window.loopy ? loopy.offsetScale : 1);
 
         // Mouse!
         Mouse.x = mx;
@@ -43,12 +43,14 @@ Mouse.init = function(target){
         var eventType = (event.originalEvent && event.originalEvent.type) || "unknown";
         console.log("[DEBUG] mousemove | mode=" + mode + " | screen=(" + event.x.toFixed(1) + "," + event.y.toFixed(1) + ") | model=(" + mx.toFixed(1) + "," + my.toFixed(1) + ") | type=" + eventType);
 
-        // Allow a small jitter threshold (5px) so taps are still
-        // treated as clicks on touch screens.
+        // Allow a small jitter threshold so taps are still
+        // treated as clicks on touch screens. Use a larger threshold (10px) for touch events.
+        var isTouch = event.originalEvent && (event.originalEvent.type === 'touchmove' || event.originalEvent.type === 'touchstart');
+        var jitterThreshold = isTouch ? 100 : 25; // 10px for touch, 5px for mouse
         var dx = event.x - (Mouse.canvasStartX || event.x);
         var dy = event.y - (Mouse.canvasStartY || event.y);
         var dist2 = dx*dx + dy*dy;
-        if(dist2 > 25) {
+        if(dist2 > jitterThreshold) {
             if (!Mouse.moved) console.log("[DEBUG] Movement detected beyond jitter threshold, treating as DRAG");
             Mouse.moved = true;
         } else {

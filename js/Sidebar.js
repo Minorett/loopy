@@ -68,9 +68,10 @@ function Sidebar(loopy){
         }));
         page.onedit = function(){
 
-            // Set color of Slider
+            // Set color of Slider (safely check Node.COLORS exists)
             var node = page.target;
-            var color = Node.COLORS[node.hue];
+            var colors = (window.Node && Node.COLORS) ? Node.COLORS : ["#ccc"];
+            var color = colors[node.hue] || colors[0];
             page.getComponent("init").setBGColor(color);
 
             // Focus on the name field IF IT'S "" or "?"
@@ -392,11 +393,12 @@ function ComponentSlider(config){
         slider.style.height = "31.25px";
         slider.style.display = "flex";
         slider.setAttribute("class","component_slider_graphic");
-        for(var i=0; i<Node.COLORS.length; i++){
+        var colors = (window.Node && Node.COLORS) ? Node.COLORS : ["#ccc"];
+        for(var i=0; i<colors.length; i++){
             var square = document.createElement("div");
             square.style.flex = "1";
             square.style.height = "100%";
-            square.style.backgroundColor = Node.COLORS[i];
+            square.style.backgroundColor = colors[i];
             slider.appendChild(square);
         }
     } else {

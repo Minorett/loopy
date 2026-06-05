@@ -16,6 +16,7 @@ Loopy.TOOL_LABEL = 3;
 function Loopy(config){
 
     var self = this;
+    window.loopy = self; // assign early so listeners triggered during init can access the instance
     self.config = config;
 
     // Application base path (absolute from domain root)
