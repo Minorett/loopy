@@ -649,6 +649,8 @@ MODAL
 @media (hover: none) {
     [data-balloon]::before,
     [data-balloon]::after {
-        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: none !important;
     }
 }
