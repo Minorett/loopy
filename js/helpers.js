@@ -135,7 +135,7 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
 
     // WRAP THEM CALLBACKS
     var _onmousedown = function(event){
-        if (event.type === "touchstart") event.preventDefault();
+        if (event.type === "touchstart" && event.cancelable) event.preventDefault();
         var _fakeEvent = _onmousemove(event);
         _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
         _fakeEvent.originalEvent = event;
@@ -154,7 +154,7 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
             var offset = _getTotalOffset(target);
             _fakeEvent.x = event.changedTouches[0].clientX - offset.left;
             _fakeEvent.y = event.changedTouches[0].clientY - offset.top;
-            if (event.type === "touchmove") event.preventDefault();
+            if (event.type === "touchmove" && event.cancelable) event.preventDefault();
         }else{
             // Not Touch
             var offset = _getTotalOffset(target);
@@ -168,7 +168,7 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
 
     };
     var _onmouseup = function(event){
-        if (event.type === "touchend") event.preventDefault();
+        if (event.type === "touchend" && event.cancelable) event.preventDefault();
         var _fakeEvent = {};
         onmouseup(_fakeEvent);
     };
