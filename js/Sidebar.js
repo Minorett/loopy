@@ -49,15 +49,6 @@ function Sidebar(loopy){
                 Node.defaultHue = value;
             }
         }));
-        page.addComponent("init", new ComponentSlider({
-            bg: "initial",
-            label: "Intensidad inicial:",
-            options: [0, 0.16, 0.33, 0.50, 0.66, 0.83, 1],
-            //options: [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1],
-            oninput: function(value){
-                Node.defaultValue = value;
-            }
-        }));
         page.addComponent("shape", new ComponentChoices({
             label: "Forma:",
             choices: [
@@ -68,13 +59,8 @@ function Sidebar(loopy){
         }));
         page.onedit = function(){
 
-            // Set color of Slider
-            var node = page.target;
-            var color = Node.COLORS[node.hue];
-            page.getComponent("init").setBGColor(color);
-
             // Focus on the name field IF IT'S "" or "?"
-            var name = node.label;
+            var name = page.target.label;
             if(name=="" || name=="?") page.getComponent("label").select();
 
         };

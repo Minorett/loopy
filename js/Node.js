@@ -15,7 +15,7 @@ Node.COLORS = [
     "#A97FFF"  // 7: Violet
 ];
 
-Node.defaultValue = 0.5;
+Node.defaultValue = 0;
 Node.defaultHue = 0;
 
 Node.DEFAULT_RADIUS = 60;
