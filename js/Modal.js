@@ -169,7 +169,21 @@ function Modal(loopy){
         };
 
         // or, tweet it
-        self.addPage("save_link", page);
+        // Botón copiar
+                var copyBtn = page.addComponent(new ComponentButton({
+                    label: "Copiar link",
+                    onclick: function(){
+                        navigator.clipboard.writeText(shortOutput.dom.value)
+                            .then(function(){
+                                copyBtn.dom.querySelector(".component_button").innerHTML = "¡Copiado!";
+                                setTimeout(function(){
+                                    copyBtn.dom.querySelector(".component_button").innerHTML = "Copiar link";
+                                }, 2000);
+                            });
+                    }
+                }));
+        
+                self.addPage("save_link", page);
     })();
 
     // Embed
