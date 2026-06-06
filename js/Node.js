@@ -5,14 +5,14 @@ NODE!
 **********************************/
 
 Node.COLORS = [
-    "#EA3E3E", // 0: Red
-    "#FF83C1", // 1: Pink
-    "#EA9D51", // 2: Orange
-    "#FEEE43", // 3: Yellow
-    "#BFEE3F", // 4: Green
-    "#7FD4FF", // 5: Celeste/Light Blue
-    "#1966D2", // 6: Blue
-    "#A97FFF"  // 7: Violet
+    "#FF6B6B", // 0: Rojo
+    "#FF83C1", // 1: Rosa
+    "#EA9D51", // 2: Naranja
+    "#FEEE43", // 3: Amarillo
+    "#BFEE3F", // 4: Verde
+    "#7FD4FF", // 5: Celeste
+    "#79B8FF", // 6: Azul
+    "#C3A6FF"  // 7: Violeta
 ];
 
 Node.defaultValue = 0;
@@ -283,8 +283,8 @@ function Node(model, config){
         // linear from 0 to 1, asymptotic otherwise.
         var _value;
         if(self.value>=0 && self.value<=1){
-            // (0,1) -> (0.1, 0.9)
-            _value = 0.1 + 0.8*self.value;
+            // (0,1) -> (0.0, 1.0)
+            _value = 1.0 * self.value;
         }else{
             if(self.value<0){
                 // asymptotically approach 0, starting at 0.1
