@@ -281,6 +281,17 @@ function Loopy(config){
         input.click();
     });
 
+    // Delete key: remove selected element
+    subscribe("key/delete", function(){
+        var active = document.activeElement;
+        if(active.tagName === "INPUT" || active.tagName === "TEXTAREA") return;
+        var page = self.sidebar.currentPage;
+        if(page && page.target && page.target.kill){
+            page.target.kill();
+            self.sidebar.showPage("Edit");
+        }
+    });
+
     self.saveToURL = function(embed){
 
         // Create link
