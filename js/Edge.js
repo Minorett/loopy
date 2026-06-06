@@ -469,7 +469,12 @@ function Edge(model, config){
            self.a === undefined || self.w === undefined){
             return false;
         }
-
+        var bbox = self.getBoundingBox();
+        var margin = HIT_THRESHOLD;
+        if(x < bbox.left - margin || x > bbox.right + margin ||
+           y < bbox.top - margin || y > bbox.bottom + margin){
+            return false;
+        }
         // Point is in canvas coordinates; geometry is retina (2x). Double the point.
         var px = x * 2;
         var py = y * 2;
@@ -500,9 +505,13 @@ function Edge(model, config){
         // Angular padding to include arrow head and base
         var angularPadding = HIT_THRESHOLD / self.r;  // era HIT_THRESHOLD * 2
 
-
         // Normalize begin/end to [0, 2*PI) for angular range check
-        var b = ((self.begin % Math.TAU) + Math.TAU) % Math.TAU;
+        var b_corrected = self.begin;
+        if(self.y < 0){
+            if(b_corrected > 0) b_corrected -= Math.TAU;
+            else b_corrected += Math.TAU;
+        }
+        var b = ((b_corrected % Math.TAU) + Math.TAU) % Math.TAU;
         var e = ((self.end % Math.TAU) + Math.TAU) % Math.TAU;
         var p = ((pointAngle % Math.TAU) + Math.TAU) % Math.TAU;
 
