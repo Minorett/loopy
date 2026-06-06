@@ -32,7 +32,7 @@ function Sidebar(loopy){
         var page = new SidebarPage();
         page.addComponent(new ComponentButton({
             header: true,
-            label: "volver atrás",
+            label: "<b>volver al menú</b>",
             onclick: function(){
                 self.showPage("Edit");
             }
@@ -80,7 +80,7 @@ function Sidebar(loopy){
         var page = new SidebarPage();
         page.addComponent(new ComponentButton({
             header: true,
-            label: "volver atrás",
+            label: "<b>volver al menú</b>",
             onclick: function(){
                 self.showPage("Edit");
             }
@@ -121,7 +121,7 @@ function Sidebar(loopy){
         var page = new SidebarPage();
         page.addComponent(new ComponentButton({
             header: true,
-            label: "volver atrás",
+            label: "<b>volver al menú</b>",
             onclick: function(){
                 self.showPage("Edit");
             }
