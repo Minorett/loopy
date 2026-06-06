@@ -490,7 +490,7 @@ function Edge(model, config){
         var dist = Math.sqrt((localX - cx) * (localX - cx) + (localY - cy) * (localY - cy));
 
         // Check proximity to arc radius
-        if(Math.abs(dist - self.r) > HIT_THRESHOLD * 2){
+        if(Math.abs(dist - self.r) > HIT_THRESHOLD){  // era HIT_THRESHOLD * 2
             return false;
         }
 
@@ -498,7 +498,8 @@ function Edge(model, config){
         var pointAngle = Math.atan2(localY - cy, localX - cx);
 
         // Angular padding to include arrow head and base
-        var angularPadding = (HIT_THRESHOLD * 2) / self.r;
+        var angularPadding = HIT_THRESHOLD / self.r;  // era HIT_THRESHOLD * 2
+
 
         // Normalize begin/end to [0, 2*PI) for angular range check
         var b = ((self.begin % Math.TAU) + Math.TAU) % Math.TAU;
