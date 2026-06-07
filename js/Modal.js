@@ -191,6 +191,7 @@ function Modal(loopy){
         actions.appendChild(copyBtn);
 
                 self.addPage("save_link", page);
+    })();
 
 
     // Embed
