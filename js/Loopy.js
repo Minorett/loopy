@@ -17,6 +17,7 @@ function Loopy(config){
 
     var self = this;
     self.config = config;
+    self.id = null;
 
     // Application base path (absolute from domain root)
     var path = window.location.pathname.replace(/index\.html$/, "");
@@ -152,13 +153,32 @@ function Loopy(config){
 
     // YOU'RE A DIRTY BOY
     var _autosaveTimeout = null;
+    var _serverAutosaveTimeout = null;
     subscribe("model/changed", function(){
         if(!self.embedded) self.dirty = true;
         if(!self.embedded){
+
+            // Local autosave
             clearTimeout(_autosaveTimeout);
             _autosaveTimeout = setTimeout(function(){
                 localStorage.setItem("loopy_autosave", self.model.serialize());
+                if(self.id) localStorage.setItem("loopy_id", self.id);
+                else localStorage.removeItem("loopy_id");
             }, 500);
+
+            // Server autosave
+            if(self.id){
+                clearTimeout(_serverAutosaveTimeout);
+                _serverAutosaveTimeout = setTimeout(function(){
+                    if(self.id && self.dirty){
+                        var data = self.model.serialize();
+                        fetch(self.base + "save.php?id=" + self.id, {
+                            method: "POST",
+                            body: data
+                        });
+                    }
+                }, 2000);
+            }
         }
     });
 
@@ -390,8 +410,10 @@ function Loopy(config){
                     throw new Error("Model not found");
                 })
                 .then(function(text){
+                    self.id = id;
                     self.model.deserialize(decodeURIComponent(text));
                     self.model.center();
+                    self.dirty = false;
                 })
                 .catch(function(err){
                     console.error(err);
@@ -405,9 +427,11 @@ function Loopy(config){
         var autosaved = localStorage.getItem("loopy_autosave");
         if(autosaved){
             try{
+                self.id = localStorage.getItem("loopy_id");
                 self.model.deserialize(decodeURIComponent(autosaved));
             }catch(e){
                 localStorage.removeItem("loopy_autosave");
+                localStorage.removeItem("loopy_id");
                 self.model.deserialize(decodeURIComponent(_blankData));
             }
         }else{
