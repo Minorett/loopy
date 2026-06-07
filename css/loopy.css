@@ -418,10 +418,18 @@ MODAL
     }
 }
 
-#grid-toggle {
+#extra-buttons {
     position: fixed;
-    bottom: 200px; /* Above the logo link */
+    bottom: 200px;
     right: 20px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    z-index: 1000;
+}
+
+#grid-toggle {
+    position: relative;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -434,7 +442,6 @@ MODAL
     align-items: center;
     justify-content: center;
     transition: background 0.3s;
-    z-index: 1000;
 }
 
 #grid-toggle:hover {
@@ -465,9 +472,7 @@ MODAL
 }
 
 #recenter-button {
-    position: fixed;
-    bottom: 260px; /* Above the grid toggle button */
-    right: 20px;
+    position: relative;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -480,7 +485,6 @@ MODAL
     align-items: center;
     justify-content: center;
     transition: background 0.3s;
-    z-index: 1000;
 }
 
 #recenter-button:hover {
@@ -612,14 +616,8 @@ MODAL
         display: inline-block;
     }
     
-    #grid-toggle {
+    #extra-buttons {
         bottom: 20px;
-        right: auto;
-        left: 20px;
-    }
-
-    #recenter-button {
-        bottom: 80px;
         right: auto;
         left: 20px;
     }
@@ -628,7 +626,9 @@ MODAL
 /* Button tags - temporary labels for grid-toggle and recenter-button */
 .button-tag {
     position: absolute;
-    right: 60px;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
     background: #4a90e2;
     color: white;
     padding: 4px 8px;
@@ -639,13 +639,6 @@ MODAL
     pointer-events: none;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     z-index: 1001;
-}
-
-@media (max-width: 768px) {
-    .button-tag {
-        right: auto;
-        left: 60px;
-    }
 }
 
 @media (pointer: coarse) {
