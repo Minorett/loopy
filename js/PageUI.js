@@ -36,6 +36,7 @@ function PageUI(dom){
 function Page(){
 
     var self = this;
+    self.target = null;
 
     // DOM
     self.dom = document.createElement("div");
@@ -44,6 +45,7 @@ function Page(){
 
     // Add Component
     self.addComponent = function(component){
+        component.page = self; // tie to page
         self.dom.appendChild(component.dom); // add to DOM
         return component;
     };
