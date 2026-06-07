@@ -346,7 +346,7 @@ function Loopy(config){
 
         // Restore state
         self.isUndoing = true;
-        self.model.deserialize(state);
+        self.model.deserialize(decodeURIComponent(state));
         self.isUndoing = false;
 
     };
