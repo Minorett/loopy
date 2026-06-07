@@ -670,3 +670,25 @@ MODAL
         transition: none !important;
     }
 }
+
+/* Ocultar botones de UI en embed */
+.embed-mode #extra-buttons,
+.embed-mode #sidebar-toggle {
+    display: none !important;
+}
+
+/* Logo más pequeño y reposicionado en embed */
+.embed-mode .contexto-link {
+    bottom: 10px;
+    right: 10px;
+}
+.embed-mode .contexto-link img {
+    height: 30px;
+}
+
+/* Play controls reposicionados para no solaparse con el logo */
+.embed-mode #playbar {
+    bottom: 15px;
+    right: 60px;
+    left: auto !important;
+}
