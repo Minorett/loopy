@@ -271,6 +271,27 @@ div[big=yes] .play_button_label{
 
     cursor: pointer;
 }
+.modal_actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.modal_actions .component_button {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 140px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .modal_actions {
+        flex-direction: column;
+    }
+}
 .component_button:hover{
     background: #999;
 }

@@ -175,21 +175,23 @@ function Modal(loopy){
 
         // or, tweet it
         // Botón copiar
-                var copyBtn = page.addComponent(new ComponentButton({
-                    label: "Copiar link",
-                    onclick: function(){
+        var actions = document.createElement("div");
+        actions.className = "modal_actions";
+        page.dom.appendChild(actions);
+
+                var copyBtn = _createButton("Copiar link", function(){
                         navigator.clipboard.writeText(shortOutput.dom.value)
                             .then(function(){
-                                copyBtn.dom.querySelector(".component_button").innerHTML = "¡Copiado!";
+                                copyBtn.innerHTML = "¡Copiado!";
                                 setTimeout(function(){
-                                    copyBtn.dom.querySelector(".component_button").innerHTML = "Copiar link";
+                                    copyBtn.innerHTML = "Copiar link";
                                 }, 2000);
                             });
-                    }
-                }));
-        
+                    });
+        actions.appendChild(copyBtn);
+
                 self.addPage("save_link", page);
-    })();
+
 
     // Embed
     (function(){
@@ -303,22 +305,23 @@ function Modal(loopy){
         page.width = 500;
         page.height = 250;
         page.addComponent(new ComponentHTML({
-            html: "<b style='font-size:1.4em'>¿Empezar una nueva red?</b><br><br>"+
+            html: "<b>¿Empezar una nueva red?</b><br><br>"+
             "Se abrirá un lienzo vacío. Tu red actual no se eliminará: si la guardaste con un enlace, podrás volver a acceder a él.<br><br>"
         }));
-        page.addComponent(new ComponentButton({
-            label: "Cancelar",
-            onclick: function(){
-                self.hide();
-            }
+
+        // Actions
+        var actions = document.createElement("div");
+        actions.className = "modal_actions";
+        page.dom.appendChild(actions);
+
+        actions.appendChild(_createButton("Cancelar", function(){
+            self.hide();
         }));
-        page.addComponent(new ComponentButton({
-            label: "Crear nueva red",
-            onclick: function(){
-                self.hide();
-                publish("model/new");
-            }
+        actions.appendChild(_createButton("Crear nueva red", function(){
+            self.hide();
+            publish("model/new");
         }));
+
         self.addPage("model/new/confirm", page);
     })();
 
