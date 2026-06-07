@@ -156,4 +156,14 @@ function Dragger(loopy){
 
     });
 
+    // Right-click release: contextmenu fires instead of mouseup
+    document.addEventListener("contextmenu", function(event){
+        if(self.dragging){
+            event.preventDefault();
+            self.dragging = null;
+            self.offsetX = 0;
+            self.offsetY = 0;
+        }
+    });
+
 }
