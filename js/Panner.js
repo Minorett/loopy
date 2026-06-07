@@ -25,7 +25,13 @@
             if(Key.space && Mouse.button === 0) shouldPan = true;
 
             // 2. Right Click (button 2) or Middle Click (button 1)
-            if(Mouse.button === 1 || Mouse.button === 2) shouldPan = true;
+            if(Mouse.button === 1 || Mouse.button === 2) {
+                // Prevent panning if there's an element under the mouse
+                var isElementUnderMouse = loopy.model.getNodeByPoint(Mouse.x, Mouse.y) ||
+                                          loopy.model.getEdgeByPoint(Mouse.x, Mouse.y) ||
+                                          loopy.model.getLabelByPoint(Mouse.x, Mouse.y);
+                if(!isElementUnderMouse) shouldPan = true;
+            }
 
             if(shouldPan){
                 isPanning = true;
