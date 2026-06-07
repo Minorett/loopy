@@ -156,10 +156,15 @@ function Modal(loopy){
                 return response.text();
             })
             .then(function(id){
+                loopy.id = id;
+                loopy.dirty = false;
                 var base = window.location.origin + loopy.base;
                 var shortLink = base + id;
                 shortOutput.output(shortLink);
                 shortOutput.dom.select();
+
+                // Update URL
+                window.history.replaceState(null, null, shortLink);
             })
             .catch(function(err){
                 console.error(err);

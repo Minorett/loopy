@@ -59,14 +59,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Generate unique 8-char alphanumeric ID
-    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    do {
-        $id = '';
-        for ($i = 0; $i < 8; $i++) {
-            $id .= $chars[rand(0, strlen($chars) - 1)];
+    // Check if an ID was provided for updating
+    if (isset($_GET['id'])) {
+        $id = $_GET['id'];
+        // Validate ID (8-char alphanumeric)
+        if (!preg_match('/^[a-zA-Z0-9]{8}$/', $id)) {
+            http_response_code(400);
+            echo "Invalid ID format";
+            exit;
         }
-    } while (file_exists($dir . $id . '.json'));
+    } else {
+        // Generate unique 8-char alphanumeric ID
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        do {
+            $id = '';
+            for ($i = 0; $i < 8; $i++) {
+                $id .= $chars[rand(0, strlen($chars) - 1)];
+            }
+        } while (file_exists($dir . $id . '.json'));
+    }
 
     // Save model data
     file_put_contents($dir . $id . '.json', $data);
