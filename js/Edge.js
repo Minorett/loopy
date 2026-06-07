@@ -436,6 +436,9 @@ function Edge(model, config){
 
     self.kill = function(){
 
+        // SAVE UNDO
+        self.loopy.saveUndo();
+
         // Kill Listeners!
         unsubscribe("model/reset",_listenerReset);
 

@@ -70,6 +70,10 @@ function Loopy(config){
     // Modal
     self.modal = new Modal(self);
 
+    // Undo stack
+    self.undoStack = [];
+    self.isUndoing = false;
+
     //////////
     // INIT //
     //////////
@@ -289,6 +293,46 @@ function Loopy(config){
         if(page && page.target && page.target.kill){
             page.target.kill();
             self.sidebar.showPage("Edit");
+        }
+    });
+
+    // Undo
+    self.saveUndo = function(){
+
+        // Only if in edit mode and not currently undoing
+        if(self.mode != Loopy.MODE_EDIT) return;
+        if(self.isUndoing) return;
+
+        // Coalesce multiple calls (e.g. killing node kills its edges)
+        if(self._undoTimeout) return;
+        var state = self.model.serialize();
+        self._undoTimeout = setTimeout(function(){
+            self._undoTimeout = null;
+            self.undoStack.push(state);
+            if(self.undoStack.length > 10){
+                self.undoStack.shift();
+            }
+        }, 10);
+
+    };
+    self.undo = function(){
+
+        // Only if in edit mode
+        if(self.mode != Loopy.MODE_EDIT) return;
+
+        // Get last state
+        var state = self.undoStack.pop();
+        if(!state) return;
+
+        // Restore state
+        self.isUndoing = true;
+        self.model.deserialize(state);
+        self.isUndoing = false;
+
+    };
+    subscribe("key/undo", function(){
+        if(Key.control){
+            self.undo();
         }
     });
 

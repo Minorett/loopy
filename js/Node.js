@@ -376,6 +376,9 @@ function Node(model, config){
 
     self.kill = function(){
 
+        // SAVE UNDO
+        self.loopy.saveUndo();
+
         // Kill Listeners!
         unsubscribe("mousemove",_listenerMouseMove);
         unsubscribe("mousedown",_listenerMouseDown);
