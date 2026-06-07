@@ -168,6 +168,8 @@ function Sidebar(loopy){
             
             "<b style='font-size:1.4em'>LOOPY español </b> (v2)<br>una herramienta para pensar sistemas complejos.<br><br>"+
 
+            "<span class='mini_button' onclick='publish(\"model/new/confirm\")'>crear nueva red</span><br><br>"+
+
             "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
             "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span><br><br>"+
             "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span><br><br>"+

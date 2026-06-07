@@ -396,6 +396,13 @@ function Model(loopy){
         }
     };
 
+    self.newModel = function(){
+        self.clear();
+        Node._UID = 0;
+        self.loopy.showGrid = false;
+        publish("model/changed");
+    };
+
 
 
     ////////////////////

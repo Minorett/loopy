@@ -182,6 +182,29 @@ function Loopy(config){
         }
     });
 
+    subscribe("model/new/confirm", function(){
+        publish("modal", ["model/new/confirm"]);
+    });
+
+    subscribe("model/new", function(){
+        // 1. Borrar autosave de localStorage
+        localStorage.removeItem("loopy_autosave");
+        localStorage.removeItem("loopy_id");
+
+        // 2. Verificar si hay ID en la URL
+        var search = window.location.search;
+        var hasId = (search.indexOf("id=") !== -1);
+
+        if(hasId){
+            // Redirigir a la URL base sin query params
+            var baseUrl = window.location.origin + window.location.pathname;
+            window.location.href = baseUrl;
+        }else{
+            // Limpiar canvas en el lugar
+            self.model.newModel();
+        }
+    });
+
     subscribe("export/file", function(){
         var element = document.createElement('a');
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + self.model.serialize());
