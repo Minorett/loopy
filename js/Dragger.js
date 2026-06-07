@@ -16,9 +16,13 @@ function Dragger(loopy){
 
     subscribe("mousedown",function(){
 
-        // ONLY WHEN EDITING w DRAG
+        // ONLY WHEN EDITING
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
-        if(self.loopy.tool!=Loopy.TOOL_DRAG) return;
+
+        // Tool check: either TOOL_DRAG OR Right Click
+        var isRightClickDrag = (Mouse.button === 2);
+        if(!isRightClickDrag && self.loopy.tool!=Loopy.TOOL_DRAG) return;
+
         if(Key.space) return; // DON'T DRAG IF PANNING
 
         // Any node under here? If so, start dragging!
@@ -27,7 +31,7 @@ function Dragger(loopy){
             self.dragging = dragNode;
             self.offsetX = Mouse.x - dragNode.x;
             self.offsetY = Mouse.y - dragNode.y;
-            if(window.innerWidth > 768) loopy.sidebar.edit(dragNode); // edit on desktop only
+            if(!isRightClickDrag && window.innerWidth > 768) loopy.sidebar.edit(dragNode); // edit on desktop only
             return;
         }
 
@@ -37,7 +41,7 @@ function Dragger(loopy){
             self.dragging = dragLabel;
             self.offsetX = Mouse.x - dragLabel.x;
             self.offsetY = Mouse.y - dragLabel.y;
-            if(window.innerWidth > 768) loopy.sidebar.edit(dragLabel); // edit on desktop only
+            if(!isRightClickDrag && window.innerWidth > 768) loopy.sidebar.edit(dragLabel); // edit on desktop only
             return;
         }
 
@@ -47,16 +51,18 @@ function Dragger(loopy){
             self.dragging = dragEdge;
             self.offsetX = Mouse.x - dragEdge.labelX;
             self.offsetY = Mouse.y - dragEdge.labelY;
-            if(window.innerWidth > 768) loopy.sidebar.edit(dragEdge); // edit on desktop only
+            if(!isRightClickDrag && window.innerWidth > 768) loopy.sidebar.edit(dragEdge); // edit on desktop only
             return;
         }
 
     });
     subscribe("mousemove",function(){
 
-        // ONLY WHEN EDITING w DRAG
+        // ONLY WHEN EDITING
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
-        if(self.loopy.tool!=Loopy.TOOL_DRAG) return;
+
+        // If not dragging, check tool
+        if(!self.dragging && self.loopy.tool!=Loopy.TOOL_DRAG) return;
 
         // If you're dragging a NODE, move it around!
         if(self.dragging && self.dragging._CLASS_=="Node"){
@@ -140,9 +146,8 @@ function Dragger(loopy){
     });
     subscribe("mouseup",function(){
 
-        // ONLY WHEN EDITING w DRAG
+        // ONLY WHEN EDITING
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
-        if(self.loopy.tool!=Loopy.TOOL_DRAG) return;
 
         // Let go!
         self.dragging = null;
