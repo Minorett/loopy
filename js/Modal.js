@@ -297,6 +297,31 @@ function Modal(loopy){
         self.addPage("save_gif", page);
         })();
 
+    // model/new/confirm
+    (function(){
+        var page = new Page();
+        page.width = 500;
+        page.height = 250;
+        page.addComponent(new ComponentHTML({
+            html: "<b style='font-size:1.4em'>¿Empezar una nueva red?</b><br><br>"+
+            "Se abrirá un lienzo vacío. Tu red actual no se eliminará: si la guardaste con un enlace, podrás volver a acceder a él.<br><br>"
+        }));
+        page.addComponent(new ComponentButton({
+            label: "Cancelar",
+            onclick: function(){
+                self.hide();
+            }
+        }));
+        page.addComponent(new ComponentButton({
+            label: "Crear nueva red",
+            onclick: function(){
+                self.hide();
+                publish("model/new");
+            }
+        }));
+        self.addPage("model/new/confirm", page);
+    })();
+
         }
 
 function ModalIframe(config){
