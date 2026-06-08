@@ -685,10 +685,3 @@ MODAL
 .embed-mode .contexto-link img {
     height: 30px;
 }
-
-/* Play controls reposicionados para no solaparse con el logo */
-.embed-mode #playbar {
-    bottom: 15px;
-    right: 60px;
-    left: auto !important;
-}
