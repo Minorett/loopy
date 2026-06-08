@@ -685,3 +685,7 @@ MODAL
 .embed-mode .contexto-link img {
     height: 30px;
 }
+
+.embed-mode #playbar {
+    bottom: 15px !important;
+}
