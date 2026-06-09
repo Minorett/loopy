@@ -499,6 +499,24 @@ function Edge(model, config){
         var cy = self.y2;
         var dist = Math.sqrt((localX - cx) * (localX - cx) + (localY - cy) * (localY - cy));
 
+        // Para arcos casi rectos (radio enorme), usar distancia punto-segmento
+        if(self.r > 5000){
+            var startX = cx + Math.cos(self.begin) * self.r;
+            var startY = cy + Math.sin(self.begin) * self.r;
+            var endX = cx + Math.cos(self.end) * self.r;
+            var endY = cy + Math.sin(self.end) * self.r;
+            var segDx = endX - startX;
+            var segDy = endY - startY;
+            var segLen2 = segDx*segDx + segDy*segDy;
+            var t = ((localX - startX)*segDx + (localY - startY)*segDy) / segLen2;
+            t = Math.max(0, Math.min(1, t));
+            var projX = startX + t * segDx;
+            var projY = startY + t * segDy;
+            var distToSeg = Math.sqrt((localX-projX)*(localX-projX) + (localY-projY)*(localY-projY));
+            if(distToSeg > adaptiveThreshold) return false;
+            return true;
+        }
+
         // Check proximity to arc radius
         if(Math.abs(dist - self.r) > adaptiveThreshold){  // era HIT_THRESHOLD * 2
             return false;
