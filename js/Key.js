@@ -18,6 +18,8 @@
         69: "erase", // (E)rase
         84: "label", // (T)ext
         83: "save", // (S)ave
+        46: "delete", // Delete key
+        90: "undo", // (Z) Undo
 
     };
 

@@ -18,6 +18,7 @@ canvas{
     top:0; left:0;
     width: calc(100% - 300px);
     height: 100%;
+    touch-action: none;
 }
 #canvasses[fullscreen=yes]{
     width: 100%;
@@ -270,6 +271,27 @@ div[big=yes] .play_button_label{
 
     cursor: pointer;
 }
+.modal_actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.modal_actions .component_button {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 140px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .modal_actions {
+        flex-direction: column;
+    }
+}
 .component_button:hover{
     background: #999;
 }
@@ -417,10 +439,18 @@ MODAL
     }
 }
 
-#grid-toggle {
+#extra-buttons {
     position: fixed;
-    bottom: 200px; /* Above the logo link */
+    bottom: 200px;
     right: 20px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    z-index: 1000;
+}
+
+#grid-toggle {
+    position: relative;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -433,7 +463,6 @@ MODAL
     align-items: center;
     justify-content: center;
     transition: background 0.3s;
-    z-index: 1000;
 }
 
 #grid-toggle:hover {
@@ -464,9 +493,7 @@ MODAL
 }
 
 #recenter-button {
-    position: fixed;
-    bottom: 260px; /* Above the grid toggle button */
-    right: 20px;
+    position: relative;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -479,7 +506,6 @@ MODAL
     align-items: center;
     justify-content: center;
     transition: background 0.3s;
-    z-index: 1000;
 }
 
 #recenter-button:hover {
@@ -521,8 +547,9 @@ MODAL
         transform: translateX(-50%);
     }
 
-    .play_button_label {
-        display: inline-block;
+    #playbar .play_button_label, #playbar .play_button_icon {
+        display: inline-block !important;
+        vertical-align: middle !important;
     }
 
     #playbar .component_button {
@@ -535,6 +562,7 @@ MODAL
         align-items: center !important;
         padding: 0 15px !important;
         font-size: 16px !important;
+        gap: 6px !important;
     }
 
     #playbar .component_button[big=yes] {
@@ -609,14 +637,8 @@ MODAL
         display: inline-block;
     }
     
-    #grid-toggle {
+    #extra-buttons {
         bottom: 20px;
-        right: auto;
-        left: 20px;
-    }
-
-    #recenter-button {
-        bottom: 80px;
         right: auto;
         left: 20px;
     }
@@ -625,7 +647,9 @@ MODAL
 /* Button tags - temporary labels for grid-toggle and recenter-button */
 .button-tag {
     position: absolute;
-    right: 60px;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
     background: #4a90e2;
     color: white;
     padding: 4px 8px;
@@ -638,9 +662,30 @@ MODAL
     z-index: 1001;
 }
 
-@media (max-width: 768px) {
-    .button-tag {
-        right: auto;
-        left: 60px;
+@media (pointer: coarse) {
+    [data-balloon]::before,
+    [data-balloon]::after {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: none !important;
     }
+}
+
+/* Ocultar botones de UI en embed */
+.embed-mode #extra-buttons,
+.embed-mode #sidebar-toggle {
+    display: none !important;
+}
+
+/* Logo más pequeño y reposicionado en embed */
+.embed-mode .contexto-link {
+    bottom: 10px;
+    right: 10px;
+}
+.embed-mode .contexto-link img {
+    height: 30px;
+}
+
+.embed-mode #playbar {
+    bottom: 15px !important;
 }

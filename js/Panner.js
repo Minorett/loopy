@@ -25,7 +25,13 @@
             if(Key.space && Mouse.button === 0) shouldPan = true;
 
             // 2. Right Click (button 2) or Middle Click (button 1)
-            if(Mouse.button === 1 || Mouse.button === 2) shouldPan = true;
+            if(Mouse.button === 1 || Mouse.button === 2) {
+                // Prevent panning if there's an element under the mouse
+                var isElementUnderMouse = loopy.model.getNodeByPoint(Mouse.x, Mouse.y) ||
+                                          loopy.model.getEdgeByPoint(Mouse.x, Mouse.y) ||
+                                          loopy.model.getLabelByPoint(Mouse.x, Mouse.y);
+                if(!isElementUnderMouse) shouldPan = true;
+            }
 
             if(shouldPan){
                 isPanning = true;
@@ -47,7 +53,7 @@
                 lastCanvasX = Mouse.canvasX;
                 lastCanvasY = Mouse.canvasY;
 
-                publish("resize");
+                publish("view/changed");
             }
         };
 
@@ -92,13 +98,14 @@
             loopy.offsetY = mouseY - (mouseY - loopy.offsetY) * scaleChange;
             loopy.offsetScale = newScale;
 
-            publish("resize");
+            publish("view/changed");
         }, { passive: false });
 
         // --- MOBILE PAN & PINCH ---
-        var lastTouchDistance = 0;
+        var startTouchDistance = 0;
         var initialPinchScale = 1;
         var lastTouchCenter = null;
+        var cachedRect = null;
 
         function getTouchDistance(touch1, touch2) {
             var dx = touch1.clientX - touch2.clientX;
@@ -116,25 +123,25 @@
         canvasses.addEventListener('touchstart', function(e) {
             if (e.touches.length === 2) {
                 e.preventDefault();
-                lastTouchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+                startTouchDistance = getTouchDistance(e.touches[0], e.touches[1]);
                 initialPinchScale = loopy.offsetScale;
                 lastTouchCenter = getTouchCenter(e.touches[0], e.touches[1]);
+                cachedRect = canvasses.getBoundingClientRect();
             }
         }, { passive: false });
 
         canvasses.addEventListener('touchmove', function(e) {
-            if (e.touches.length === 2) {
+            if (e.touches.length === 2 && cachedRect) {
                 e.preventDefault();
                 
                 var currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
                 var currentCenter = getTouchCenter(e.touches[0], e.touches[1]);
                 
                 // Center point relative to canvas
-                var rect = canvasses.getBoundingClientRect();
-                var touchCenterX = currentCenter.x - rect.left;
-                var touchCenterY = currentCenter.y - rect.top;
-                var lastCenterX = lastTouchCenter.x - rect.left;
-                var lastCenterY = lastTouchCenter.y - rect.top;
+                var touchCenterX = currentCenter.x - cachedRect.left;
+                var touchCenterY = currentCenter.y - cachedRect.top;
+                var lastCenterX = lastTouchCenter.x - cachedRect.left;
+                var lastCenterY = lastTouchCenter.y - cachedRect.top;
 
                 // 1. Panning (2-finger)
                 var dx = touchCenterX - lastCenterX;
@@ -143,19 +150,20 @@
                 loopy.offsetY += dy;
 
                 // 2. Pinch Zoom
-                var scaleFactor = currentDistance / lastTouchDistance;
-                var newScale = initialPinchScale * scaleFactor;
-                newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+                if(startTouchDistance > 0){
+                    var scaleFactor = currentDistance / startTouchDistance;
+                    var newScale = initialPinchScale * scaleFactor;
+                    newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+                    
+                    var scaleChange = newScale / loopy.offsetScale;
+                    loopy.offsetX = touchCenterX - (touchCenterX - loopy.offsetX) * scaleChange;
+                    loopy.offsetY = touchCenterY - (touchCenterY - loopy.offsetY) * scaleChange;
+                    loopy.offsetScale = newScale;
+                }
                 
-                var scaleChange = newScale / loopy.offsetScale;
-                loopy.offsetX = touchCenterX - (touchCenterX - loopy.offsetX) * scaleChange;
-                loopy.offsetY = touchCenterY - (touchCenterY - loopy.offsetY) * scaleChange;
-                loopy.offsetScale = newScale;
-                
-                lastTouchDistance = currentDistance;
                 lastTouchCenter = currentCenter;
 
-                publish("resize");
+                publish("view/changed");
             }
         }, { passive: false });
 

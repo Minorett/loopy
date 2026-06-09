@@ -15,6 +15,7 @@ function Eraser(loopy){
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
         if(self.loopy.tool!=Loopy.TOOL_ERASE) return;
         if(Key.space) return; // DON'T ERASE IF PANNING
+        if(Mouse.button === 2) return; // DON'T ERASE IF RIGHT-CLICK
 
         // Erase any nodes under here
         if(Mouse.pressed || clicked){

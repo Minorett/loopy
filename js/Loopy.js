@@ -17,6 +17,7 @@ function Loopy(config){
 
     var self = this;
     self.config = config;
+    self.id = null;
 
     // Application base path (absolute from domain root)
     var path = window.location.pathname.replace(/index\.html$/, "");
@@ -69,6 +70,10 @@ function Loopy(config){
 
     // Modal
     self.modal = new Modal(self);
+
+    // Undo stack
+    self.undoStack = [];
+    self.isUndoing = false;
 
     //////////
     // INIT //
@@ -147,8 +152,57 @@ function Loopy(config){
     self.dirty = false;
 
     // YOU'RE A DIRTY BOY
+    var _autosaveTimeout = null;
+    var _serverAutosaveTimeout = null;
     subscribe("model/changed", function(){
         if(!self.embedded) self.dirty = true;
+        if(!self.embedded){
+
+            // Local autosave
+            clearTimeout(_autosaveTimeout);
+            _autosaveTimeout = setTimeout(function(){
+                localStorage.setItem("loopy_autosave", self.model.serialize());
+                if(self.id) localStorage.setItem("loopy_id", self.id);
+                else localStorage.removeItem("loopy_id");
+            }, 500);
+
+            // Server autosave
+            if(self.id){
+                clearTimeout(_serverAutosaveTimeout);
+                _serverAutosaveTimeout = setTimeout(function(){
+                    if(self.id && self.dirty){
+                        var data = self.model.serialize();
+                        fetch(self.base + "save.php?id=" + self.id, {
+                            method: "POST",
+                            body: data
+                        });
+                    }
+                }, 2000);
+            }
+        }
+    });
+
+    subscribe("model/new/confirm", function(){
+        publish("modal", ["model/new/confirm"]);
+    });
+
+    subscribe("model/new", function(){
+        // 1. Borrar autosave de localStorage
+        localStorage.removeItem("loopy_autosave");
+        localStorage.removeItem("loopy_id");
+
+        // 2. Verificar si hay ID en la URL
+        var search = window.location.search;
+        var hasId = (search.indexOf("id=") !== -1);
+
+        if(hasId){
+            // Redirigir a la URL base sin query params
+            var baseUrl = window.location.origin + window.location.pathname;
+            window.location.href = baseUrl;
+        }else{
+            // Limpiar canvas en el lugar
+            self.model.newModel();
+        }
     });
 
     subscribe("export/file", function(){
@@ -274,6 +328,57 @@ function Loopy(config){
         input.click();
     });
 
+    // Delete key: remove selected element
+    subscribe("key/delete", function(){
+        var active = document.activeElement;
+        if(active.tagName === "INPUT" || active.tagName === "TEXTAREA") return;
+        var page = self.sidebar.currentPage;
+        if(page && page.target && page.target.kill){
+            page.target.kill();
+            self.sidebar.showPage("Edit");
+        }
+    });
+
+    // Undo
+    self.saveUndo = function(){
+
+        // Only if in edit mode and not currently undoing
+        if(self.mode != Loopy.MODE_EDIT) return;
+        if(self.isUndoing) return;
+
+        // Coalesce multiple calls (e.g. killing node kills its edges)
+        if(self._undoTimeout) return;
+        var state = self.model.serialize();
+        self._undoTimeout = setTimeout(function(){
+            self._undoTimeout = null;
+            self.undoStack.push(state);
+            if(self.undoStack.length > 10){
+                self.undoStack.shift();
+            }
+        }, 10);
+
+    };
+    self.undo = function(){
+
+        // Only if in edit mode
+        if(self.mode != Loopy.MODE_EDIT) return;
+
+        // Get last state
+        var state = self.undoStack.pop();
+        if(!state) return;
+
+        // Restore state
+        self.isUndoing = true;
+        self.model.deserialize(decodeURIComponent(state));
+        self.isUndoing = false;
+
+    };
+    subscribe("key/undo", function(){
+        if(Key.control){
+            self.undo();
+        }
+    });
+
     self.saveToURL = function(embed){
 
         // Create link
@@ -328,8 +433,10 @@ function Loopy(config){
                     throw new Error("Model not found");
                 })
                 .then(function(text){
+                    self.id = id;
                     self.model.deserialize(decodeURIComponent(text));
                     self.model.center();
+                    self.dirty = false;
                 })
                 .catch(function(err){
                     console.error(err);
@@ -339,10 +446,21 @@ function Loopy(config){
             return;
         }
 
-        // 3. Default: Blank start
-        self.model.deserialize(decodeURIComponent(_blankData));
+        // 3. Autosave or blank start
+        var autosaved = localStorage.getItem("loopy_autosave");
+        if(autosaved){
+            try{
+                self.id = localStorage.getItem("loopy_id");
+                self.model.deserialize(decodeURIComponent(autosaved));
+            }catch(e){
+                localStorage.removeItem("loopy_autosave");
+                localStorage.removeItem("loopy_id");
+                self.model.deserialize(decodeURIComponent(_blankData));
+            }
+        }else{
+            self.model.deserialize(decodeURIComponent(_blankData));
+        }
     };
-
 
     ///////////////////////////
     //////// EMBEDDED? ////////
@@ -355,6 +473,7 @@ function Loopy(config){
         // Hide all that UI
         self.toolbar.dom.style.display = "none";
         self.sidebar.dom.style.display = "none";
+        document.body.classList.add("embed-mode");
 
         // If *NO UI AT ALL*
         var noUI = !!parseInt(_getParameterByName("no_ui")); // force to Boolean

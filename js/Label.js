@@ -74,6 +74,9 @@ function Label(model, config){
 
     self.kill = function(){
 
+        // SAVE UNDO
+        self.loopy.saveUndo();
+
         // Remove from parent!
         model.removeLabel(self);
 

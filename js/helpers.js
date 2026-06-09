@@ -132,10 +132,13 @@ function _getTotalOffset(target){
 }
 
 function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
+    var cachedOffset = null;
 
     // WRAP THEM CALLBACKS
     var _onmousedown = function(event){
+        cachedOffset = _getTotalOffset(target);
         var _fakeEvent = _onmousemove(event);
+        if(!_fakeEvent) return;
         _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
         _fakeEvent.originalEvent = event;
         onmousedown(_fakeEvent);
@@ -146,17 +149,18 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
         var _fakeEvent = {};
         _fakeEvent.button = (event.button!==undefined) ? event.button : 0;
         _fakeEvent.originalEvent = event;
+
+        var offset = cachedOffset || _getTotalOffset(target);
+
         if(event.changedTouches){
             // If more than one touch, don't treat as a single-point mouse event
             if(event.touches && event.touches.length > 1) return;
             // Touch
-            var offset = _getTotalOffset(target);
             _fakeEvent.x = event.changedTouches[0].clientX - offset.left;
             _fakeEvent.y = event.changedTouches[0].clientY - offset.top;
-            // event.preventDefault();
+            event.preventDefault();
         }else{
             // Not Touch
-            var offset = _getTotalOffset(target);
             _fakeEvent.x = event.clientX - offset.left;
             _fakeEvent.y = event.clientY - offset.top;
         }
@@ -167,6 +171,10 @@ function _addMouseEvents(target, onmousedown, onmousemove, onmouseup){
 
     };
     var _onmouseup = function(event){
+        cachedOffset = null;
+        if(event.changedTouches && target.contains(event.target)){
+            event.preventDefault();
+        }
         var _fakeEvent = {};
         onmouseup(_fakeEvent);
     };

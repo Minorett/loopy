@@ -179,6 +179,10 @@ function Model(loopy){
     });
 
     // OR RESIZE or RESET
+    subscribe("view/changed", function(){
+        _canvasDirty = true;
+        drawCountdown = drawCountdownFull;
+    });
     subscribe("resize", function(){
         _canvasDirty = true;
         drawCountdown = drawCountdownFull;
@@ -392,6 +396,13 @@ function Model(loopy){
         }
     };
 
+    self.newModel = function(){
+        self.clear();
+        Node._UID = 0;
+        self.loopy.showGrid = false;
+        publish("model/changed");
+    };
+
 
 
     ////////////////////
@@ -468,7 +479,11 @@ function Model(loopy){
 
     };
     subscribe("mouseclick", function(){
-        if(window.innerWidth > 768) _editCallback();
+        if(window.innerWidth > 768){
+            _editCallback();
+        } else {
+            if(self.loopy.tool == Loopy.TOOL_LABEL || self.loopy.tool == Loopy.TOOL_DRAG || self.loopy.tool == Loopy.TOOL_INK) _editCallback();
+        }
     });
     subscribe("mousedblclick", function(){
         if(window.innerWidth <= 768) _editCallback();

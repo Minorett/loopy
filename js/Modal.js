@@ -156,10 +156,15 @@ function Modal(loopy){
                 return response.text();
             })
             .then(function(id){
+                loopy.id = id;
+                loopy.dirty = false;
                 var base = window.location.origin + loopy.base;
                 var shortLink = base + id;
                 shortOutput.output(shortLink);
                 shortOutput.dom.select();
+
+                // Update URL
+                window.history.replaceState(null, null, shortLink);
             })
             .catch(function(err){
                 console.error(err);
@@ -169,8 +174,25 @@ function Modal(loopy){
         };
 
         // or, tweet it
-        self.addPage("save_link", page);
+        // Botón copiar
+        var actions = document.createElement("div");
+        actions.className = "modal_actions";
+        page.dom.appendChild(actions);
+
+                var copyBtn = _createButton("Copiar link", function(){
+                        navigator.clipboard.writeText(shortOutput.dom.value)
+                            .then(function(){
+                                copyBtn.innerHTML = "¡Copiado!";
+                                setTimeout(function(){
+                                    copyBtn.innerHTML = "Copiar link";
+                                }, 2000);
+                            });
+                    });
+        actions.appendChild(copyBtn);
+
+                self.addPage("save_link", page);
     })();
+
 
     // Embed
     (function(){
@@ -277,6 +299,32 @@ function Modal(loopy){
         }))
         self.addPage("save_gif", page);
         })();
+
+    // model/new/confirm
+    (function(){
+        var page = new Page();
+        page.width = 500;
+        page.height = 250;
+        page.addComponent(new ComponentHTML({
+            html: "<b>¿Empezar una nueva red?</b><br><br>"+
+            "Se abrirá un lienzo vacío. Tu red actual no se eliminará: si la guardaste con un enlace, podrás volver a acceder a él.<br><br>"
+        }));
+
+        // Actions
+        var actions = document.createElement("div");
+        actions.className = "modal_actions";
+        page.dom.appendChild(actions);
+
+        actions.appendChild(_createButton("Cancelar", function(){
+            self.hide();
+        }));
+        actions.appendChild(_createButton("Crear nueva red", function(){
+            self.hide();
+            publish("model/new");
+        }));
+
+        self.addPage("model/new/confirm", page);
+    })();
 
         }
 

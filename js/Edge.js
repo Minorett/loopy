@@ -109,7 +109,8 @@ function Edge(model, config){
         while(lastSignal && lastSignal.position>=1){
 
             // Actually pass it along
-            lastSignal.delta *= self.strength; // flip at the end only!
+            var effectiveStrength = Math.sign(self.strength) * (0.3 + 0.7 * Math.abs(self.strength));
+            lastSignal.delta *= effectiveStrength; // flip at the end only!
             self.to.takeSignal(lastSignal);
             
             // Pop it, move on down
@@ -436,6 +437,9 @@ function Edge(model, config){
 
     self.kill = function(){
 
+        // SAVE UNDO
+        self.loopy.saveUndo();
+
         // Kill Listeners!
         unsubscribe("model/reset",_listenerReset);
 
@@ -470,6 +474,14 @@ function Edge(model, config){
             return false;
         }
 
+        var adaptiveThreshold = Math.min(HIT_THRESHOLD * Math.sqrt(self.r / 200), HIT_THRESHOLD * 2);
+
+        var bbox = self.getBoundingBox();
+        var margin = adaptiveThreshold;
+        if(x < bbox.left - margin || x > bbox.right + margin ||
+           y < bbox.top - margin || y > bbox.bottom + margin){
+            return false;
+        }
         // Point is in canvas coordinates; geometry is retina (2x). Double the point.
         var px = x * 2;
         var py = y * 2;
@@ -490,7 +502,7 @@ function Edge(model, config){
         var dist = Math.sqrt((localX - cx) * (localX - cx) + (localY - cy) * (localY - cy));
 
         // Check proximity to arc radius
-        if(Math.abs(dist - self.r) > HIT_THRESHOLD * 2){
+        if(Math.abs(dist - self.r) > adaptiveThreshold){  // era HIT_THRESHOLD * 2
             return false;
         }
 
@@ -498,10 +510,15 @@ function Edge(model, config){
         var pointAngle = Math.atan2(localY - cy, localX - cx);
 
         // Angular padding to include arrow head and base
-        var angularPadding = (HIT_THRESHOLD * 2) / self.r;
+        var angularPadding = adaptiveThreshold / self.r;  // era HIT_THRESHOLD * 2
 
         // Normalize begin/end to [0, 2*PI) for angular range check
-        var b = ((self.begin % Math.TAU) + Math.TAU) % Math.TAU;
+        var b_corrected = self.begin;
+        if(self.y < 0){
+            if(b_corrected > 0) b_corrected -= Math.TAU;
+            else b_corrected += Math.TAU;
+        }
+        var b = ((b_corrected % Math.TAU) + Math.TAU) % Math.TAU;
         var e = ((self.end % Math.TAU) + Math.TAU) % Math.TAU;
         var p = ((pointAngle % Math.TAU) + Math.TAU) % Math.TAU;
 

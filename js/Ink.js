@@ -57,12 +57,17 @@ function Ink(loopy){
         ctx.clearRect(0,0,canvas.width,canvas.height); // Clear canvas
         self.strokeData = []; // Reset stroke data
     };
+
+    self.isDrawing = false;
     subscribe("mousedown",function(){
         
         // ONLY WHEN EDITING w INK
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
         if(self.loopy.tool!=Loopy.TOOL_INK) return;
         if(Key.space) return; // DON'T DRAW IF PANNING
+        if(Mouse.button !== 0) return; // ONLY LEFT CLICK
+
+        self.isDrawing = true;
 
         // New stroke data
         self.strokeData = [];
@@ -78,6 +83,7 @@ function Ink(loopy){
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
         if(self.loopy.tool!=Loopy.TOOL_INK) return;
         if(Key.space) return; // DON'T DRAW IF PANNING
+        if(!self.isDrawing) return;
 
         // Draw ink!
         self.drawInk();
@@ -88,6 +94,8 @@ function Ink(loopy){
         // ONLY WHEN EDITING w INK
         if(self.loopy.mode!=Loopy.MODE_EDIT) return;
         if(self.loopy.tool!=Loopy.TOOL_INK) return;
+        if(!self.isDrawing) return;
+        self.isDrawing = false;
 
         if(self.strokeData.length<2) return;
         if(!Mouse.moved) return;
