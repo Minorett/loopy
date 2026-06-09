@@ -501,10 +501,12 @@ function Edge(model, config){
 
         // Para arcos casi rectos (radio enorme), usar distancia punto-segmento
         if(self.r > 5000){
-            var startX = cx + Math.cos(self.begin) * self.r;
-            var startY = cy + Math.sin(self.begin) * self.r;
-            var endX = cx + Math.cos(self.end) * self.r;
-            var endY = cy + Math.sin(self.end) * self.r;
+            var b2 = self.arc < 0 ? -self.begin : self.begin;
+            var e2 = self.arc < 0 ? -self.end : self.end;
+            var startX = cx + Math.cos(b2) * self.r;
+            var startY = cy + Math.sin(b2) * self.r;
+            var endX = cx + Math.cos(e2) * self.r;
+            var endY = cy + Math.sin(e2) * self.r;
             var segDx = endX - startX;
             var segDy = endY - startY;
             var segLen2 = segDx*segDx + segDy*segDy;
