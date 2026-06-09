@@ -109,7 +109,8 @@ function Edge(model, config){
         while(lastSignal && lastSignal.position>=1){
 
             // Actually pass it along
-            lastSignal.delta *= self.strength; // flip at the end only!
+            var effectiveStrength = Math.sign(self.strength) * (0.3 + 0.7 * Math.abs(self.strength));
+            lastSignal.delta *= effectiveStrength; // flip at the end only!
             self.to.takeSignal(lastSignal);
             
             // Pop it, move on down
