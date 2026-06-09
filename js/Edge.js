@@ -473,8 +473,9 @@ function Edge(model, config){
            self.a === undefined || self.w === undefined){
             return false;
         }
+        var adaptiveThreshold = Math.min(HIT_THRESHOLD * Math.sqrt(self.r / 200), HIT_THRESHOLD * 2);
         var bbox = self.getBoundingBox();
-        var margin = HIT_THRESHOLD;
+        var margin = adaptiveThreshold;
         if(x < bbox.left - margin || x > bbox.right + margin ||
            y < bbox.top - margin || y > bbox.bottom + margin){
             return false;
@@ -499,7 +500,7 @@ function Edge(model, config){
         var dist = Math.sqrt((localX - cx) * (localX - cx) + (localY - cy) * (localY - cy));
 
         // Check proximity to arc radius
-        if(Math.abs(dist - self.r) > HIT_THRESHOLD){  // era HIT_THRESHOLD * 2
+        if(Math.abs(dist - self.r) > adaptiveThreshold){  // era HIT_THRESHOLD * 2
             return false;
         }
 
@@ -507,11 +508,11 @@ function Edge(model, config){
         var pointAngle = Math.atan2(localY - cy, localX - cx);
 
         // Angular padding to include arrow head and base
-        var angularPadding = HIT_THRESHOLD / self.r;  // era HIT_THRESHOLD * 2
+        var angularPadding = adaptiveThreshold / self.r;  // era HIT_THRESHOLD * 2
 
         // Normalize begin/end to [0, 2*PI) for angular range check
         var b_corrected = self.begin;
-        if(self.y < 0){
+        if(self.arc < 0){
             if(b_corrected > 0) b_corrected -= Math.TAU;
             else b_corrected += Math.TAU;
         }
