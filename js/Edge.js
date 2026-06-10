@@ -467,7 +467,6 @@ function Edge(model, config){
     };
 
     self.isPointInHitbox = function(x, y){
-        // Require persisted arc params (populated during update/draw)
         if(self.r === undefined || self.y2 === undefined ||
            self.begin === undefined || self.end === undefined ||
            self.a === undefined || self.w === undefined){
@@ -480,33 +479,24 @@ function Edge(model, config){
            y < bbox.top - margin || y > bbox.bottom + margin){
             return false;
         }
-        // Point is in canvas coordinates; geometry is retina (2x). Double the point.
         var px = x * 2;
         var py = y * 2;
-
-        // Arc center in unrotated coordinates is at (w/2, y2).
-        // The edge's frame is rotated by angle 'a' around (fx,fy).
-        // To test, unrotate the point into the edge's local frame.
         var dx = px - self.from.x * 2;
         var dy = py - self.from.y * 2;
         var cosA = Math.cos(-self.a);
         var sinA = Math.sin(-self.a);
         var localX = dx * cosA - dy * sinA;
         var localY = dx * sinA + dy * cosA;
-
-        // Distance from arc center (w/2, y2) in local coords
         var cx = self.w / 2;
         var cy = self.y2;
         var dist = Math.sqrt((localX - cx) * (localX - cx) + (localY - cy) * (localY - cy));
-
+    
         // Para arcos casi rectos (radio enorme), usar distancia punto-segmento
         if(self.r > 5000){
-            var b2 = self.arc < 0 ? -self.begin : self.begin;
-            var e2 = self.arc < 0 ? -self.end : self.end;
-            var startX = cx + Math.cos(b2) * self.r;
-            var startY = cy + Math.sin(b2) * self.r;
-            var endX = cx + Math.cos(e2) * self.r;
-            var endY = cy + Math.sin(e2) * self.r;
+            var startX = cx + Math.cos(self.begin) * self.r;
+            var startY = cy + Math.sin(self.begin) * self.r;
+            var endX = cx + Math.cos(self.end) * self.r;
+            var endY = cy + Math.sin(self.end) * self.r;
             var segDx = endX - startX;
             var segDy = endY - startY;
             var segLen2 = segDx*segDx + segDy*segDy;
@@ -518,50 +508,30 @@ function Edge(model, config){
             if(distToSeg > adaptiveThreshold) return false;
             return true;
         }
-
-        // Check proximity to arc radius
-        if(Math.abs(dist - self.r) > adaptiveThreshold){  // era HIT_THRESHOLD * 2
-            return false;
-        }
-
-        // Compute angle of point relative to arc center
+    
+        if(Math.abs(dist - self.r) > adaptiveThreshold) return false;
+    
         var pointAngle = Math.atan2(localY - cy, localX - cx);
-
-        // Angular padding to include arrow head and base
-        var angularPadding = adaptiveThreshold / self.r;  // era HIT_THRESHOLD * 2
-
-        // Normalize begin/end to [0, 2*PI) for angular range check
-        var b_corrected = self.begin;
-        if(self.arc < 0){
-            if(b_corrected > 0) b_corrected -= Math.TAU;
-            else b_corrected += Math.TAU;
-        }
-        var b = ((b_corrected % Math.TAU) + Math.TAU) % Math.TAU;
+        var angularPadding = adaptiveThreshold / self.r;
+        var b = ((self.begin % Math.TAU) + Math.TAU) % Math.TAU;
         var e = ((self.end % Math.TAU) + Math.TAU) % Math.TAU;
         var p = ((pointAngle % Math.TAU) + Math.TAU) % Math.TAU;
-
-        // Apply angular padding based on arc direction.
-        // For clockwise arcs (arc > 0), the angle increases from begin to end,
-        // so extend begin backward and end forward.
-        // For counter-clockwise arcs (arc < 0), the angle decreases from begin to end,
-        // so extend begin forward and end backward.
+        var pad = angularPadding;
+    
         if(self.arc > 0){
-            b = ((b - angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
-            e = ((e + angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
+            // CW: ángulo crece de b a e
+            b = ((b - pad) % Math.TAU + Math.TAU) % Math.TAU;
+            e = ((e + pad) % Math.TAU + Math.TAU) % Math.TAU;
+            if(b <= e){ if(p < b || p > e) return false; }
+            else       { if(p < b && p > e) return false; }
         }else{
-            b = ((b + angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
-            e = ((e - angularPadding) % Math.TAU + Math.TAU) % Math.TAU;
+            // CCW (arc < 0): ángulo decrece de b a e, rango válido es [e, b]
+            b = ((b + pad) % Math.TAU + Math.TAU) % Math.TAU;
+            e = ((e - pad) % Math.TAU + Math.TAU) % Math.TAU;
+            if(e <= b){ if(p < e || p > b) return false; }
+            else      { if(p < e && p > b) return false; }
         }
-
-        // Handle angular wrap-around at 2π.
-        // If b <= e, the arc does not cross 0 and valid angles are [b, e].
-        // If b > e, the arc wraps around and valid angles are [b, 2π) ∪ [0, e].
-        if(b <= e){
-            if(p < b || p > e) return false;
-        }else{
-            if(p < b && p > e) return false;
-        }
-
+    
         return true;
     };
 
