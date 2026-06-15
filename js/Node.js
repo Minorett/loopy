@@ -132,22 +132,18 @@ function Node(model, config){
             myEdges[i].addSignal(signal);
         }
     };
-
+    
     self.takeSignal = function(signal){
-
-        // Change value
         self.value += signal.delta;
-
-        // Propagate signal
-        self.sendSignal(signal);
-        // self.sendSignal(signal.delta*0.9); // PROPAGATE SLIGHTLY WEAKER
-
-        // Animation
-        // _offsetVel += 0.08 * (signal.delta/Math.abs(signal.delta));
-        _offsetVel -= 6 * (signal.delta/Math.abs(signal.delta));
-
+        self.bound();
+    
+        // Propagar basado en el valor actual, no en el delta recibido
+        if(Math.abs(self.value) > 0.01){ // threshold mínimo para no propagar ruido
+            self.sendSignal({ delta: self.value * 0.3 });
+        }
+    
+        _offsetVel -= 6 * (signal.delta / Math.abs(signal.delta));
     };
-
 
     //////////////////////////////////////
     // UPDATE & DRAW /////////////////////
