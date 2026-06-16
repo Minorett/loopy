@@ -1,6 +1,6 @@
 ![](https://i.imgur.com/S8c7E8o.gif)
 
-# LOOPY.ESP (v1.2)
+# LOOPY.ESP (v2)
 
 **Herramienta Profesional de Pensamiento Sistémico para Análisis Clínico**
 
