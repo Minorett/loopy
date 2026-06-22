@@ -191,13 +191,20 @@ function Loopy(config){
         localStorage.removeItem("loopy_autosave");
         localStorage.removeItem("loopy_id");
 
-        // 2. Verificar si hay ID en la URL
+        // 2. Verificar si hay ID en la URL (query param o path)
         var search = window.location.search;
-        var hasId = (search.indexOf("id=") !== -1);
+        var hasQueryId = (search.indexOf("id=") !== -1);
 
-        if(hasId){
-            // Redirigir a la URL base sin query params
-            var baseUrl = window.location.origin + window.location.pathname;
+        var hasPathId = false;
+        var path = window.location.pathname;
+        if(path.length > self.base.length){
+            var relative = path.substring(self.base.length);
+            hasPathId = /^([a-zA-Z0-9]{8})/.test(relative);
+        }
+
+        if(hasQueryId || hasPathId){
+            // Redirigir a la URL base sin ID
+            var baseUrl = window.location.origin + self.base;
             window.location.href = baseUrl;
         }else{
             // Limpiar canvas en el lugar
