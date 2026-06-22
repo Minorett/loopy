@@ -128,69 +128,138 @@ function Modal(loopy){
         self.addPage("credits", page);
     })();
 
-    // Save as link
+    // Save as link / Duplicate
     (function(){
         var page = new Page();
         page.width = 500;
-        page.height = 200;
+        page.height = 250;
 
         // Short link section
-        page.addComponent(new ComponentHTML({
-            html: "Link guardado:"
-        }));
+        var labelHtml = document.createElement("div");
+        page.dom.appendChild(labelHtml);
+
+        // Autosave note (hidden by default, shown when ID exists)
+        var autosaveNote = document.createElement("div");
+        autosaveNote.style.fontSize = "13px";
+        autosaveNote.style.color = "#888";
+        autosaveNote.style.marginTop = "6px";
+        autosaveNote.style.marginBottom = "12px";
+        autosaveNote.innerHTML = "Los cambios se guardan automáticamente en este enlace.";
+        page.dom.appendChild(autosaveNote);
+
         var shortOutput = page.addComponent(new ComponentOutput({}));
+
+        // Duplicate button (hidden by default, shown when ID exists)
+        var duplicateBtn = null;
 
         page.onshow = function(){
 
-            // Short link
-            shortOutput.output("Generando...");
+            if(loopy.id){
+                // === TENEMOS ID: mostrar link existente + opción de duplicar ===
+                labelHtml.innerHTML = "<b>Tu red está guardada en:</b>";
+                autosaveNote.style.display = "block";
 
-            // Fetch short link
-            var data = loopy.model.serialize();
-            fetch(loopy.base + "save.php", {
-                method: "POST",
-                body: data
-            })
-            .then(function(response){
-                if(!response.ok) throw new Error("Failed to save");
-                return response.text();
-            })
-            .then(function(id){
-                loopy.id = id;
-                loopy.dirty = false;
                 var base = window.location.origin + loopy.base;
-                var shortLink = base + id;
+                var shortLink = base + loopy.id;
                 shortOutput.output(shortLink);
                 shortOutput.dom.select();
 
-                // Update URL
-                window.history.replaceState(null, null, shortLink);
-            })
-            .catch(function(err){
-                console.error(err);
-                shortOutput.output("Error al generar link corto");
-            });
+                // Mostrar botón duplicar
+                if(!duplicateBtn){
+                    duplicateBtn = _createButton("Duplicar red", function(){});
+                    var actionsContainer = page.dom.querySelector(".modal_actions");
+                    if(actionsContainer){
+                        actionsContainer.appendChild(duplicateBtn);
+                    }else{
+                        // Fallback: crear contenedor
+                        var actions = document.createElement("div");
+                        actions.className = "modal_actions";
+                        page.dom.appendChild(actions);
+                        // Mover el copiar
+                        var existingCopy = page.dom.querySelector(".component_button");
+                        if(existingCopy) actions.appendChild(existingCopy);
+                        actions.appendChild(duplicateBtn);
+                    }
+                }
+                duplicateBtn.style.display = "inline-block";
+                duplicateBtn.onclick = function(){
+                    // Duplicar: crear nuevo ID
+                    var data = loopy.model.serialize();
+                    var base = window.location.origin + loopy.base;
+                    fetch(loopy.base + "save.php", {
+                        method: "POST",
+                        body: data
+                    })
+                    .then(function(response){
+                        if(!response.ok) throw new Error("Failed to save");
+                        return response.text();
+                    })
+                    .then(function(id){
+                        loopy.id = id;
+                        loopy.dirty = false;
+                        var shortLink = base + id;
+                        shortOutput.output(shortLink);
+                        shortOutput.dom.select();
+                        window.history.replaceState(null, null, shortLink);
+                        labelHtml.innerHTML = "<b>Link guardado:</b>";
+                        duplicateBtn.style.display = "none";
+                    })
+                    .catch(function(err){
+                        console.error(err);
+                        shortOutput.output("Error al duplicar");
+                    });
+                };
+
+            }else{
+                // === NO TENEMOS ID: crear nuevo link (comportamiento actual) ===
+                labelHtml.innerHTML = "<b>Link guardado:</b>";
+                autosaveNote.style.display = "none";
+                if(duplicateBtn) duplicateBtn.style.display = "none";
+                shortOutput.output("Generando...");
+
+                var data = loopy.model.serialize();
+                fetch(loopy.base + "save.php", {
+                    method: "POST",
+                    body: data
+                })
+                .then(function(response){
+                    if(!response.ok) throw new Error("Failed to save");
+                    return response.text();
+                })
+                .then(function(id){
+                    loopy.id = id;
+                    loopy.dirty = false;
+                    var base = window.location.origin + loopy.base;
+                    var shortLink = base + id;
+                    shortOutput.output(shortLink);
+                    shortOutput.dom.select();
+                    window.history.replaceState(null, null, shortLink);
+                })
+                .catch(function(err){
+                    console.error(err);
+                    shortOutput.output("Error al generar link corto");
+                });
+            }
 
         };
 
-        // or, tweet it
         // Botón copiar
         var actions = document.createElement("div");
         actions.className = "modal_actions";
         page.dom.appendChild(actions);
 
-                var copyBtn = _createButton("Copiar link", function(){
-                        navigator.clipboard.writeText(shortOutput.dom.value)
-                            .then(function(){
-                                copyBtn.innerHTML = "¡Copiado!";
-                                setTimeout(function(){
-                                    copyBtn.innerHTML = "Copiar link";
-                                }, 2000);
-                            });
-                    });
+        var copyBtn = _createButton("Copiar link", function(){
+            navigator.clipboard.writeText(shortOutput.dom.value)
+                .then(function(){
+                    copyBtn.innerHTML = "¡Copiado!";
+                    setTimeout(function(){
+                        copyBtn.innerHTML = "Copiar link";
+                    }, 2000);
+                });
+        });
         actions.appendChild(copyBtn);
 
-                self.addPage("save_link", page);
+        self.addPage("save_link", page);
     })();
 
 
