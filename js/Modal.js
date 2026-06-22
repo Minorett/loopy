@@ -395,6 +395,58 @@ function Modal(loopy){
         self.addPage("model/new/confirm", page);
     })();
 
+    // Save as file (ask for filename)
+    (function(){
+        var page = new Page();
+        page.width = 500;
+        page.height = 200;
+
+        var label = document.createElement("div");
+        label.innerHTML = "<b>Nombre del archivo:</b><br><br>";
+        page.dom.appendChild(label);
+
+        var filenameInput = document.createElement("input");
+        filenameInput.type = "text";
+        filenameInput.value = "system_model";
+        filenameInput.style.width = "100%";
+        filenameInput.style.padding = "8px";
+        filenameInput.style.boxSizing = "border-box";
+        filenameInput.style.fontSize = "16px";
+        filenameInput.style.border = "1px solid #ccc";
+        filenameInput.style.borderRadius = "4px";
+        page.dom.appendChild(filenameInput);
+
+        var actions = document.createElement("div");
+        actions.className = "modal_actions";
+        page.dom.appendChild(actions);
+
+        actions.appendChild(_createButton("Cancelar", function(){
+            self.hide();
+        }));
+        actions.appendChild(_createButton("Descargar", function(){
+            var name = filenameInput.value.trim();
+            if(!name) name = "system_model";
+            if(name.indexOf(".") === -1) name += ".loopy";
+
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + loopy.model.serialize());
+            element.setAttribute('download', name);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+
+            self.hide();
+        }));
+
+        // Select the input when shown
+        page.onshow = function(){
+            setTimeout(function(){ filenameInput.select(); }, 50);
+        };
+
+        self.addPage("save_file", page);
+    })();
+
         }
 
 function ModalIframe(config){
