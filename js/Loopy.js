@@ -191,13 +191,25 @@ function Loopy(config){
         localStorage.removeItem("loopy_autosave");
         localStorage.removeItem("loopy_id");
 
-        // 2. Verificar si hay ID en la URL
-        var search = window.location.search;
-        var hasId = (search.indexOf("id=") !== -1);
+        // 2. Cancelar autosaves pendientes y limpiar ID local
+        self.id = null;
+        clearTimeout(_autosaveTimeout);
+        clearTimeout(_serverAutosaveTimeout);
 
-        if(hasId){
-            // Redirigir a la URL base sin query params
-            var baseUrl = window.location.origin + window.location.pathname;
+        // 3. Verificar si hay ID en la URL (query param o path)
+        var search = window.location.search;
+        var hasQueryId = (search.indexOf("id=") !== -1);
+
+        var hasPathId = false;
+        var path = window.location.pathname;
+        if(path.length > self.base.length){
+            var relative = path.substring(self.base.length);
+            hasPathId = /^([a-zA-Z0-9]{8})/.test(relative);
+        }
+
+        if(hasQueryId || hasPathId){
+            // Redirigir a la URL base sin ID
+            var baseUrl = window.location.origin + self.base;
             window.location.href = baseUrl;
         }else{
             // Limpiar canvas en el lugar
@@ -206,16 +218,7 @@ function Loopy(config){
     });
 
     subscribe("export/file", function(){
-        var element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + self.model.serialize());
-        element.setAttribute('download', "system_model.loopy");
-
-        element.style.display = 'none';
-        document.body.appendChild(element);
-
-        element.click();
-
-        document.body.removeChild(element);
+        publish("modal", ["save_file"]);
     });
 
     subscribe("save/png", function(){
