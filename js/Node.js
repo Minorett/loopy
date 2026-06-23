@@ -137,10 +137,9 @@ function Node(model, config){
         self.value += signal.delta;
         self.bound();
     
-        // Propagar basado en el valor actual, no en el delta recibido
-        if(Math.abs(self.value) > 0.01){ // threshold mínimo para no propagar ruido
-            self.sendSignal({ delta: self.value * 0.3 });
-        }
+        // Sin umbral: la señal siempre se propaga.
+        // Edge.MAX_SIGNALS / MAX_SIGNALS_PER_EDGE actúan como red de seguridad.
+        self.sendSignal({ delta: self.value * 0.3 });
     
         _offsetVel -= 6 * (signal.delta / Math.abs(signal.delta));
     };
