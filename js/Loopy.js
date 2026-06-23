@@ -453,7 +453,7 @@ function Loopy(config){
         var autosaved = localStorage.getItem("loopy_autosave");
         if(autosaved){
             try{
-                self.id = localStorage.getItem("loopy_id");
+                self.id = null;
                 self.model.deserialize(decodeURIComponent(autosaved));
             }catch(e){
                 localStorage.removeItem("loopy_autosave");
