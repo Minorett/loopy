@@ -416,14 +416,7 @@ function Modal(loopy){
         filenameInput.style.borderRadius = "4px";
         page.dom.appendChild(filenameInput);
 
-        var actions = document.createElement("div");
-        actions.className = "modal_actions";
-        page.dom.appendChild(actions);
-
-        actions.appendChild(_createButton("Cancelar", function(){
-            self.hide();
-        }));
-        actions.appendChild(_createButton("Descargar", function(){
+        var download = function(){
             var name = filenameInput.value.trim();
             if(!name) name = "system_model";
             if(name.indexOf(".") === -1) name += ".loopy";
@@ -437,7 +430,19 @@ function Modal(loopy){
             document.body.removeChild(element);
 
             self.hide();
+        };
+        filenameInput.addEventListener("keydown", function(e){
+            if(e.key === "Enter") download();
+        });
+
+        var actions = document.createElement("div");
+        actions.className = "modal_actions";
+        page.dom.appendChild(actions);
+
+        actions.appendChild(_createButton("Cancelar", function(){
+            self.hide();
         }));
+        actions.appendChild(_createButton("Descargar", download));
 
         // Select the input when shown
         page.onshow = function(){
