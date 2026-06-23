@@ -191,7 +191,12 @@ function Loopy(config){
         localStorage.removeItem("loopy_autosave");
         localStorage.removeItem("loopy_id");
 
-        // 2. Verificar si hay ID en la URL (query param o path)
+        // 2. Cancelar autosaves pendientes y limpiar ID local
+        self.id = null;
+        clearTimeout(_autosaveTimeout);
+        clearTimeout(_serverAutosaveTimeout);
+
+        // 3. Verificar si hay ID en la URL (query param o path)
         var search = window.location.search;
         var hasQueryId = (search.indexOf("id=") !== -1);
 
