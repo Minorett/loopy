@@ -472,7 +472,9 @@ function Edge(model, config){
            self.a === undefined || self.w === undefined){
             return false;
         }
+
         var adaptiveThreshold = Math.min(HIT_THRESHOLD * Math.sqrt(self.r / 200), HIT_THRESHOLD * 2);
+
         var bbox = self.getBoundingBox();
         var margin = adaptiveThreshold;
         if(x < bbox.left - margin || x > bbox.right + margin ||
@@ -490,30 +492,26 @@ function Edge(model, config){
         var cx = self.w / 2;
         var cy = self.y2;
         var dist = Math.sqrt((localX - cx) * (localX - cx) + (localY - cy) * (localY - cy));
-    
-        // Para arcos casi rectos (radio enorme), usar distancia punto-segmento
-        if(self.r > 5000){
-            var startX = cx + Math.cos(self.begin) * self.r;
-            var startY = cy + Math.sin(self.begin) * self.r;
-            var endX = cx + Math.cos(self.end) * self.r;
-            var endY = cy + Math.sin(self.end) * self.r;
-            var segDx = endX - startX;
-            var segDy = endY - startY;
-            var segLen2 = segDx*segDx + segDy*segDy;
-            var t = ((localX - startX)*segDx + (localY - startY)*segDy) / segLen2;
-            t = Math.max(0, Math.min(1, t));
-            var projX = startX + t * segDx;
-            var projY = startY + t * segDy;
-            var distToSeg = Math.sqrt((localX-projX)*(localX-projX) + (localY-projY)*(localY-projY));
-            if(distToSeg > adaptiveThreshold) return false;
-            return true;
+
+        // Check proximity to arc radius
+        if(Math.abs(dist - self.r) > adaptiveThreshold){  // era HIT_THRESHOLD * 2
+            return false;
         }
     
         if(Math.abs(dist - self.r) > adaptiveThreshold) return false;
     
         var pointAngle = Math.atan2(localY - cy, localX - cx);
-        var angularPadding = adaptiveThreshold / self.r;
-        var b = ((self.begin % Math.TAU) + Math.TAU) % Math.TAU;
+
+        // Angular padding to include arrow head and base
+        var angularPadding = adaptiveThreshold / self.r;  // era HIT_THRESHOLD * 2
+
+        // Normalize begin/end to [0, 2*PI) for angular range check
+        var b_corrected = self.begin;
+        if(self.y < 0){
+            if(b_corrected > 0) b_corrected -= Math.TAU;
+            else b_corrected += Math.TAU;
+        }
+        var b = ((b_corrected % Math.TAU) + Math.TAU) % Math.TAU;
         var e = ((self.end % Math.TAU) + Math.TAU) % Math.TAU;
         var p = ((pointAngle % Math.TAU) + Math.TAU) % Math.TAU;
         var pad = angularPadding;
