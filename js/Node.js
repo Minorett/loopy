@@ -136,12 +136,10 @@ function Node(model, config){
     self.takeSignal = function(signal){
         self.value += signal.delta;
         self.bound();
-    
-        // Sin umbral: la señal siempre se propaga.
-        // Edge.MAX_SIGNALS / MAX_SIGNALS_PER_EDGE actúan como red de seguridad.
         self.sendSignal({ delta: self.value * 0.3 });
-    
-        _offsetVel -= 6 * (signal.delta / Math.abs(signal.delta));
+        if(signal.delta !== 0){  // ← guardia anti-NaN
+            _offsetVel -= 6 * (signal.delta / Math.abs(signal.delta));
+        }
     };
 
     //////////////////////////////////////
