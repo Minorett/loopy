@@ -218,29 +218,29 @@ function Node(model, config){
         ctx.translate(x,y+_offset);
 
         // CENTRALITY HALO
+        // Plano: usa el color propio del nodo (sin cuartiles ni gradiente),
+        // con relleno transparente y tamaño proporcional a la centralidad.
         if(self.loopy.showCentrality && self.centrality >= self.model.centralityThreshold && self.centrality > 0){
             var ratio = 0;
             if(self.model.maxCentrality > 0){
                 ratio = self.centrality / self.model.maxCentrality;
             }
 
-            var haloColor;
-            if(ratio > 0.66){
-                haloColor = "rgba(234, 62, 62, 0.8)"; // Red
-            } else if(ratio > 0.33){
-                haloColor = "rgba(234, 157, 81, 0.8)"; // Orange/Yellow
-            } else {
-                haloColor = "rgba(127, 212, 255, 0.8)"; // Blue
-            }
+            // Tamaño del aura: de ~1.4x a ~2.2x el radio del nodo según ratio.
+            var minScale = 1.4;
+            var maxScale = 2.2;
+            var haloSize = r * (minScale + ratio * (maxScale - minScale));
 
-            var haloSize = r * (1 + ratio * 0.5) + 20;
-            var gradient = ctx.createRadialGradient(0, 0, r * 0.5, 0, 0, haloSize);
-            gradient.addColorStop(0, haloColor);
-            gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+            // Color propio del nodo (hex) convertido a rgba con alfa bajo.
+            var hex = color.replace('#', '');
+            var rr = parseInt(hex.substring(0, 2), 16);
+            var gg = parseInt(hex.substring(2, 4), 16);
+            var bb = parseInt(hex.substring(4, 6), 16);
+            var alpha = 0.15 + ratio * 0.20; // alfa plano ~0.15-0.35, discreto
 
             ctx.beginPath();
-            ctx.arc(0, 0, haloSize, 0, Math.TAU, false);
-            ctx.fillStyle = gradient;
+            self.getPath(ctx, haloSize);
+            ctx.fillStyle = "rgba(" + rr + "," + gg + "," + bb + "," + alpha.toFixed(2) + ")";
             ctx.fill();
         }
 
