@@ -56,6 +56,10 @@ function Loopy(config){
     // Centrality
     self.showCentrality = false;
 
+    // NIRA: impacto y estado de análisis
+    self.showImpact = false;     // pinta auras de impacto en los nodos
+    self._niraRunning = false;   // true mientras corre un análisis
+
     // Tools
     self.toolbar = new Toolbar(self);
     self.tool = Loopy.TOOL_INK;

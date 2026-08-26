@@ -172,7 +172,9 @@ function Sidebar(loopy){
 
             "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
             "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span><br><br>"+
-            "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span><br><br>"+
+            "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span> "+
+            "<span class='mini_button' id='nira_button' onclick='publish(\"nira/analyze\")'>analizar intervenciones (NIRA)</span><br><br>"+
+            "<div id='nira-ranking'></div><br>"+
 
             "<hr/><br>"+
 
@@ -211,6 +213,88 @@ function Sidebar(loopy){
         }
         publish("model/changed");
     });
+
+    // NIRA: analizar intervenciones
+    var _niraFill = null;
+    var _niraBar = null;
+    var _initNiraUI = function(){
+        var container = document.getElementById("nira-ranking");
+        if(!container) return null;
+        if(container.getAttribute("data-nira-init")) return container;
+        container.setAttribute("data-nira-init","yes");
+        container.innerHTML =
+            "<div class='nira-progress' style='display:none'>"+
+                "<div class='nira-progress-fill'></div>"+
+            "</div>"+
+            "<div class='nira-status'></div>"+
+            "<div class='nira-list'></div>";
+        _niraFill = container.querySelector(".nira-progress-fill");
+        _niraBar = container.querySelector(".nira-progress");
+        return container;
+    };
+
+    subscribe("nira/analyze", function(){
+        if(!window.NIRA || NIRA.running) return;
+        var container = _initNiraUI();
+        if(!container){
+            console.error("NIRA: no se encontró #nira-ranking");
+            return;
+        }
+        // Estilos de botón activo
+        document.getElementById("nira_button").setAttribute("active","yes");
+
+        var status = container.querySelector(".nira-status");
+        var list = container.querySelector(".nira-list");
+        _niraBar.style.display = "block";
+        _niraFill.style.width = "0%";
+        status.innerHTML = "Analizando intervenciones…";
+
+        NIRA.analyze(loopy, {
+            onProgress: function(p){
+                var pct = Math.round(p*100);
+                _niraFill.style.width = pct + "%";
+                status.innerHTML = "Analizando intervenciones… " + pct + "%";
+            },
+            onComplete: function(results){
+                _niraBar.style.display = "none";
+                document.getElementById("nira_button").removeAttribute("active");
+                status.innerHTML = "Ranking de impacto (Δ puntaje total):";
+                var html = "<ol>";
+                for(var i=0;i<results.length;i++){
+                    var r = results[i];
+                    var color = Node.COLORS[r.node.hue];
+                    html += "<li>"+
+                        "<span class='nira-dot' style='background:"+color+"'></span>"+
+                        "<span class='nira-label'>"+_escapeHtml(r.label||"?")+"</span>"+
+                        "<span class='nira-value'>"+r.impact.toFixed(3)+"</span>"+
+                    "</li>";
+                }
+                html += "</ol>";
+                html += "<div class='nira-actions'><span class='mini_button' onclick='publish(\"nira/aura/toggle\")'>ocultar/mostrar auras</span></div>";
+                list.innerHTML = html;
+            },
+            onError: function(msg){
+                _niraBar.style.display = "none";
+                document.getElementById("nira_button").removeAttribute("active");
+                status.innerHTML = msg;
+                list.innerHTML = "";
+            }
+        });
+    });
+
+    // NIRA: alternar auras de impacto
+    subscribe("nira/aura/toggle", function(){
+        loopy.showImpact = !loopy.showImpact;
+        publish("view/changed");
+    });
+
+    function _escapeHtml(text){
+        return String(text)
+            .replace(/&/g,"&amp;")
+            .replace(/</g,"&lt;")
+            .replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;");
+    }
 
     }
 
