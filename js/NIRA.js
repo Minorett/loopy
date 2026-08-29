@@ -12,6 +12,18 @@ Parámetros fijos (Fase 1, auditados):
   - Umbral:         0.001 (Σ|Δvalue| entre ticks)
   - Ticks estables: 5
   - Tope de ticks:  2000
+  - Clamp de valores: [VALUE_MIN, VALUE_MAX] = [-1.2, 2.2]
+    (nominal 0..1 con buffer 1.2, la intención original de LOOPY en
+    Node.bound(); evita la explosión exponencial por realimentación
+    positiva y mantiene el puntaje total clínicamente significativo).
+  - Cota de rango del IMPACTO: proporcional a la red, no fija.
+    Cada nodo acotado a [VALUE_MIN, VALUE_MAX] contribuye a lo sumo
+    (VALUE_MAX - VALUE_MIN) = 3.4 al |impacto total| (post - control),
+    luego para N nodos el tope físico es  N * (VALUE_MAX - VALUE_MIN).
+    Con el factor de seguridad IMPACT_SAFETY_FACTOR = 1.05, la cota
+    práctica es  N * (VALUE_MAX - VALUE_MIN) * 1.05  (ver
+    NIRA.impactRangeBound). Un número fijo (p. ej. 10) NO sirve: en
+    redes largas saturadas el impacto escala con N.
 
 Junto a Loopy/Model/Node/Edge expone una API global `NIRA`.
 
@@ -24,6 +36,19 @@ var NIRA = {
     THRESHOLD:         0.001, // umbral de estabilidad
     MIN_STABLE_TICKS:  5,     // ticks consecutivos bajo el umbral
     INTENSITY:         1,     // intervención: +1 a la alta
+
+    // Límites de clamp de los valores de nodo DURANTE el batch NIRA.
+    // Nominal 0..1 con buffer 1.2 (intención original de Node.bound()):
+    //   VALUE_MIN = -1.2  (absorbe señales negativas / decaimiento)
+    //   VALUE_MAX =  2.2  (absorbe el boost +1 de la intervención)
+    // Sin clamp, los bucles de realimentación positiva hacen explotar
+    // los valores exponencialmente y el puntaje total (Σ values) se
+    // dispara (impactos de cientos de miles). Ajustables por constante.
+    VALUE_MIN:         -1.2,
+    VALUE_MAX:         2.2,
+    // Margen de seguridad sobre el tope teórico para las aserciones de
+    // rango del impacto (ver NIRA.impactRangeBound). 1.05 = 5%.
+    IMPACT_SAFETY_FACTOR: 1.05,
 
     // Estado de ejecución / antirreentrada
     running: false,
@@ -47,6 +72,34 @@ NIRA.totalScore = function(model){
         sum += nodes[i].value;
     }
     return sum;
+};
+
+// Acota los valores de todos los nodos a [VALUE_MIN, VALUE_MAX].
+// Se aplica SOLO dentro de las simulaciones del batch NIRA (control e
+// intervenciones), NO en el comportamiento global en vivo de LOOPY
+// (Node.bound() sigue comentado; re-habilitarlo se debate aparte).
+// Clamp sobre el valor del nodo (no sobre signal.delta), así que no
+// rompe la propagación: solo limita el estado que da el puntaje total.
+NIRA.clampValues = function(model){
+    var nodes = model.nodes;
+    for(var i=0;i<nodes.length;i++){
+        var v = nodes[i].value;
+        if(v < NIRA.VALUE_MIN)      nodes[i].value = NIRA.VALUE_MIN;
+        else if(v > NIRA.VALUE_MAX) nodes[i].value = NIRA.VALUE_MAX;
+    }
+};
+
+// Cota práctica del |impacto| máximo para una red de n nodos, dada la
+// aserción de rango del impacto en tests/reportes. Es PROPORCIONAL a la
+// red, no un número fijo: cada nodo acotado a [VALUE_MIN, VALUE_MAX]
+// aporta a lo sumo (VALUE_MAX - VALUE_MIN) al |impacto total|, luego el
+// tope físico es n * (VALUE_MAX - VALUE_MIN); se multiplica por
+// IMPACT_SAFETY_FACTOR (1.05) de margen. Ej: red del owner (~5 nodos
+// saturada) => ~5 * 3.4 * 1.05 ≈ ±18 como cota dura; con nodos que no
+// saturan los impactos reales quedan muy por debajo (±5 a ±10).
+// Para 8 nodos saturados (TEST 3): 8 * 3.4 * 1.05 ≈ 28.6 (maxAbs real 17).
+NIRA.impactRangeBound = function(n){
+    return n * (NIRA.VALUE_MAX - NIRA.VALUE_MIN) * NIRA.IMPACT_SAFETY_FACTOR;
 };
 
 //////////////////////////////////////
@@ -120,6 +173,13 @@ NIRA.restore = function(loopy, snap){
 // vuelo (Edge.allSignals vacío), o hasta alcanzar maxTicks.
 // Devuelve nº de ticks usados.
 //
+// Tras CADA tick de model.update() se acota el valor de los nodos a
+// [VALUE_MIN, VALUE_MAX] (NIRA.clampValues). Sin eso, los bucles de
+// realimentación positiva hacen explotar los valores exponencialmente
+// (Node.bound() está comentado en js/Node.js) y el puntaje total se
+// dispara a impactos de cientos de miles. El clamp es sobre el valor
+// (no sobre signal.delta), así que no rompe la propagación.
+//
 // El requisito de señales en vuelo vacías evita la falsa convergencia:
 // una señal en tránsito aún no ha cambiado valores, por lo que los
 // primeros ticks tras intervenir pueden parecer "estables" antes de
@@ -144,6 +204,7 @@ NIRA.runSimulationUntilStable = function(loopy, maxTicks, threshold, minStableTi
     var t;
     for(t=0; t<maxTicks; t++){
         model.update();
+        NIRA.clampValues(model); // acotar valores tras cada tick (anti-explosión)
         if(t === 0){
             for(var i=0;i<n;i++) prev[i] = nodes[i].value;
             continue;
@@ -270,8 +331,11 @@ NIRA.analyze = function(loopy, options){
     };
 
     var _finishAll = function(){
-        // Normalizar impacto a 0..1 (robusto a saltos numéricos / explosión:
-        // si un impacto se desborda a Infinity, el ratio puede dar NaN).
+        // Normalizar impacto a 0..1. Con el clamp de valores en el bucle
+        // de simulación los impactos ya son finitos y acotados; la rama
+        // isFinite/NaN queda solo como red de seguridad por estados
+        // extremos del usuario (p. ej. valores previos gigantes en el
+        // snapshot restaurado antes del primer clamp).
         var maxAbs = 0;
         for(var i=0;i<results.length;i++){
             var a = Math.abs(results[i].impact);
@@ -281,7 +345,7 @@ NIRA.analyze = function(loopy, options){
             var imp = results[i].impact;
             var norm;
             if(!isFinite(imp)){
-                norm = (imp > 0) ? 1 : 0; // explosión: saturar
+                norm = (imp > 0) ? 1 : 0; // red de seguridad: saturar
             }else if(maxAbs > 0){
                 norm = imp / maxAbs;
             }else{
@@ -353,8 +417,11 @@ NIRA.analyze = function(loopy, options){
         if(taskIndex === 0) return; // la tarea de control no interviene
         var node = nodes[taskIndex-1];
         // Intervenir subiendo +1: takeSignal hace value += delta Y re-emite
-        // propagación (subir solo value no propaga nada).
+        // propagación (subir solo value no propaga nada). El clamp inmediato
+        // deja el boost acotado a VALUE_MAX ("sube value hasta el tope"),
+        // de modo que el valor de partida de la simulación queda en rango.
         node.takeSignal({ delta: NIRA.INTENSITY });
+        NIRA.clampValues(model);
     };
 
     // ---- Arranque ----

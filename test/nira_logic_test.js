@@ -239,6 +239,25 @@ console.log("\n[TEST 2] runSimulationUntilStable");
     var totals = NIRA.totalScore(model);
     check(totals > 1.0 && totals < 5.0, "puntaje total coherente (" + totals.toFixed(3) + ")");
     check(Edge.allSignals.length === 0, "señales todas entregadas al converger");
+
+    // (a) clamp: todos los valores quedan dentro de [VALUE_MIN, VALUE_MAX]
+    var inBounds = true;
+    for(var i=0;i<model.nodes.length;i++){
+        var v = model.nodes[i].value;
+        if(v < NIRA.VALUE_MIN || v > NIRA.VALUE_MAX) inBounds = false;
+    }
+    check(inBounds, "valores acotados tras convergencia ([VALUE_MIN,VALUE_MAX]=" +
+                    NIRA.VALUE_MIN + ".." + NIRA.VALUE_MAX + ")");
+
+    // (b) totalScore usa el ESTADO FINAL (suma actual), no un acumulado
+    var s1 = NIRA.totalScore(model);
+    var manual1 = a.value + b.value + c.value;
+    closeTo(s1, manual1, 0, "totalScore == suma actual de values (" + s1 + ")");
+    a.value += 5; // mutar: el puntaje debe reflejarlo de inmediato
+    var s2 = NIRA.totalScore(model);
+    closeTo(s2, manual1 + 5, 0, "totalScore refleja el estado actual (no acumulado)");
+    a.value -= 5;
+
     // Segunda corrida: reusar el mismo array prev no rompe
     var used2 = NIRA.runSimulationUntilStable(loopy, 200, 0.001, 5);
     check(used2 <= 200, "segunda corrida sin error");
@@ -272,9 +291,11 @@ console.log("\n[TEST 3] NIRA.analyze completo");
 
     // Estado previo del usuario: en EDIT con valores=init y algunas señales
     var preValues = model.nodes.map(function(n){ return n.value; });
+    var preAllSignals = Edge.allSignals.length;
     var done = false;
     var progressCalls = 0;
     var lastProgress = -1;
+    var boundViolations = 0;
 
     var results = null;
     NIRA.analyze(loopy, {
@@ -282,6 +303,12 @@ console.log("\n[TEST 3] NIRA.analyze completo");
             progressCalls++;
             check(p >= lastProgress - 1e-9, "progreso monótono (" + p.toFixed(3) + ")");
             lastProgress = p;
+            // (a) en TODO el batch (control + cada intervención) los valores
+            //     de nodo deben permanecer dentro de [VALUE_MIN, VALUE_MAX].
+            for(var i=0;i<model.nodes.length;i++){
+                var v = model.nodes[i].value;
+                if(v < NIRA.VALUE_MIN - 1e-9 || v > NIRA.VALUE_MAX + 1e-9) boundViolations++;
+            }
         },
         onComplete: function(r){
             results = r;
@@ -313,9 +340,51 @@ console.log("\n[TEST 3] NIRA.analyze completo");
     }
     check(normOK, "impactNormalized en [0,1]");
 
-    // El mayor |impact| normalizado == 1
+    // (a) valores de nodo nunca excedieron [VALUE_MIN, VALUE_MAX] en el batch
+    check(boundViolations === 0, "valores nunca excedieron [VALUE_MIN,VALUE_MAX] durante el batch (violaciones=" + boundViolations + ")");
+
+    // (c) Opción A con signo correcto: red con todas las aristas de fuerza
+    //     positiva => intervenir +1 a la alta nunca baja el puntaje total,
+    //     luego impacto = post - control debe ser >= 0 para cada nodo.
+    var signOK = true;
+    for(var i=0;i<results.length;i++){
+        if(results[i].impact < -1e-9) signOK = false;
+    }
+    check(signOK, "impacto >= 0 con aristas positivas (post >= control, Opción A)");
+
+    // (nuevo núcleo) impactos acotados y clínicamente significativos:
+    // con clamp [VALUE_MIN, VALUE_MAX] el |impacto| está acotado por una
+    // fórmula PROPORCIONAL a la red (ver NIRA.impactRangeBound):
+    //     |impact| <= N * (VALUE_MAX - VALUE_MIN) * IMPACT_SAFETY_FACTOR
+    // La razón de no usar un número fijo (p. ej. 10): en una red larga
+    // saturada el impacto ESCALA con N (cada nodo aporta hasta
+    // VALUE_MAX - VALUE_MIN = 3.4), y 10 se queda corto (aquí, red de 8
+    // nodos saturada => maxAbs = 17.0, superando cualquier cota fija).
     var maxAbs = Math.max.apply(null, results.map(function(r){ return Math.abs(r.impact); }));
-    check(maxAbs > 0, "hay impacto no nulo (maxAbs=" + maxAbs.toFixed(3) + ")");
+    var impactBound = NIRA.impactRangeBound(results.length); // resultados = 1 por nodo
+    check(maxAbs <= impactBound, "|impact| <= N*(VALUE_MAX-VALUE_MIN)*1.05 = " + impactBound.toFixed(2) +
+                                 " (N=" + results.length + ", maxAbs=" + maxAbs.toFixed(3) + ")");
+    check(maxAbs > 0.01, "ranking conserva discriminación tras el clamp (maxAbs=" + maxAbs.toFixed(3) + " > 0.01)");
+
+    // (c) Opción A: recomputar manualmente el impacto del mejor nodo y
+    //     compararlo con el reportado: impacto = puntaje post - línea base.
+    var userState = NIRA.snapshot(loopy); // estado del usuario (ya restaurado)
+    var target = results[0];
+    loopy.mode = Loopy.MODE_PLAY;
+    NIRA._resetSimState();
+    NIRA.runSimulationUntilStable(loopy, 2000, 0.001, 5); // control
+    var baseScore = NIRA.totalScore(model);
+    NIRA.restore(loopy, userState);
+    loopy.mode = Loopy.MODE_PLAY;
+    NIRA._resetSimState();
+    target.node.takeSignal({ delta: 1 }); // misma intervención que el batch
+    NIRA.runSimulationUntilStable(loopy, 2000, 0.001, 5);
+    var postScore = NIRA.totalScore(model);
+    var recomputed = postScore - baseScore;
+    closeTo(recomputed, target.impact, 1e-9, "impacto recomputado == impacto reportado (post - control, Opción A)");
+    // Devolver el estado del usuario exactamente
+    NIRA.restore(loopy, userState);
+    loopy.mode = Loopy.MODE_EDIT;
 
     // Estado restaurado exactamente
     closeTo(model.nodes[0].value, preValues[0], 0, "value[0] restaurado");
@@ -325,6 +394,7 @@ console.log("\n[TEST 3] NIRA.analyze completo");
     check(NIRA.running === false, "NIRA.running limpiado");
     check(loopy.showImpact === true, "showImpact activado tras completar");
     check(loopy.toolbar.dom.style.pointerEvents !== "none", "pointer events restaurados");
+    check(Edge.allSignals.length === preAllSignals, "señales restauradas exactas (" + preAllSignals + ")");
 
     // node.impact seteado coherente con el impacto de cada nodo
     var impactOK = true;
@@ -376,6 +446,73 @@ console.log("\n[TEST 4] antirreentrada y red vacía");
     NIRA.analyze(empty, { onError: function(m){ errMsg = m; } });
     check(errMsg !== null, "red vacía -> onError: " + errMsg);
     check(NIRA.running === false, "flag limpio tras red vacía");
+})();
+
+// ============================================================
+// TEST 5: clamp mantiene valores acotados en red explosiva
+// ============================================================
+console.log("\n[TEST 5] clamp en red explosiva (realimentación fuerte)");
+(function(){
+    var loopy = new Loopy._ctor();
+    var model = new StubModel(loopy);
+    loopy.model = model;
+    var labels = ["A","B","C","D","E"];
+    var nodes = [];
+    for(var i=0;i<5;i++){
+        nodes.push(model.addNode({id:i+1, label:labels[i], init:0.1, hue:i}));
+    }
+    // Bucles fuertes: self-loop (realimentación propia) + aristas
+    // bidireccionales con fuerza máxima. Sin clamp esto explotaría a
+    // impactos de cientos de miles (Node.bound() es no-op).
+    for(var i=0;i<5;i++){
+        model.addEdge({from:nodes[i], to:nodes[i], strength:1.7}); // self-loop
+        for(var j=i+1;j<5;j++){
+            model.addEdge({from:nodes[i], to:nodes[j], strength:1.0});
+            model.addEdge({from:nodes[j], to:nodes[i], strength:1.0});
+        }
+    }
+    var done = false;
+    var boundViolations = 0;
+    var results = null;
+    NIRA.analyze(loopy, {
+        onProgress: function(){
+            for(var i=0;i<model.nodes.length;i++){
+                var v = model.nodes[i].value;
+                if(v < NIRA.VALUE_MIN - 1e-9 || v > NIRA.VALUE_MAX + 1e-9) boundViolations++;
+            }
+        },
+        onComplete: function(r){ results = r; done = true; },
+        onError: function(m){ console.log("  ERROR: " + m); done = true; }
+    });
+    check(done && !!results, "analyze completó en red explosiva");
+    if(!results){
+        console.log("  ABORT: sin resultados");
+        return;
+    }
+    // (a) jamás se excede el rango durante todo el batch
+    check(boundViolations === 0, "valores nunca excedieron [VALUE_MIN,VALUE_MAX] (violaciones=" + boundViolations + ")");
+    // Impactos finitos (nada de Infinity/NaN)
+    var finiteImpacts = true;
+    for(var i=0;i<results.length;i++){
+        if(!isFinite(results[i].impact) || isNaN(results[i].impact)) finiteImpacts = false;
+    }
+    check(finiteImpacts, "todos los impactos finitos (sin Infinity/NaN)");
+    // Límite teórico del clamp: cada nodo en [VALUE_MIN, VALUE_MAX] =>
+    // por nodo |post - control| <= (VALUE_MAX - VALUE_MIN) = 3.4;
+    // 5 nodos => cota práctica NIRA.impactRangeBound(5) = 5*3.4*1.05 ≈ 17.85.
+    var maxAbs = Math.max.apply(null, results.map(function(r){ return Math.abs(r.impact); }));
+    var impactBound = NIRA.impactRangeBound(nodes.length);
+    check(maxAbs <= impactBound, "|impact| <= NIRA.impactRangeBound(N) = " + impactBound.toFixed(2) +
+                                 " (N=" + nodes.length + ", maxAbs=" + maxAbs.toFixed(3) + ")");
+    // (d) estado del usuario restaurado exacto
+    var valsOK = true;
+    for(var j=0;j<model.nodes.length;j++){
+        if(Math.abs(model.nodes[j].value - 0.1) > 1e-9) valsOK = false;
+    }
+    check(valsOK, "valores restaurados exactos (init 0.1)");
+    check(Edge.allSignals.length === 0, "sin señales residuales");
+    check(loopy.mode === Loopy.MODE_EDIT, "modo restaurado a EDIT");
+    check(NIRA.running === false, "NIRA.running limpiado");
 })();
 
 // ============================================================
