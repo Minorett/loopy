@@ -71,10 +71,16 @@ var NIRA = {
 //////////////////////////////////////
 
 // Puntaje total del sistema = suma de values de todos los nodos.
-NIRA.totalScore = function(model){
+// Si se pasa excludeIdx (índice de nodo a EXCLUIR), ese nodo queda fuera
+// del total: métrica de "derrame" (spillover). El nodo diana de una
+// intervención aporta +1 (o el INTENSITY) y su propio desequilibrio
+// (1 - init); excluirlo deja solo la propagación al RESTO del sistema
+// (efecto cascada), que es lo clínicamente relevante al elegir una diana.
+NIRA.totalScore = function(model, excludeIdx){
     var nodes = model.nodes;
     var sum = 0;
     for(var i=0;i<nodes.length;i++){
+        if(i === excludeIdx) continue;
         sum += nodes[i].value;
     }
     return sum;
@@ -239,7 +245,18 @@ NIRA.runSimulationUntilStable = function(loopy, maxTicks, threshold, minStableTi
 // Ejecuta el análisis completo en rebanadas asíncronas:
 //   0) Simulación de CONTROL sin intervenir -> puntaje línea base.
 //   1..N) Por nodo: restaurar snapshot -> +1 en ese nodo ->
-//          simular -> puntaje -> impacto = puntaje - línea base.
+//          simular -> puntaje -> impacto de derrame (spillover).
+// MÉTRICA DE DERRAME: el impacto de cada intervención excluye el nodo
+// diana del puntaje, tanto en post como en control, de modo que mide solo
+// cuánto cambia el RESTO del sistema (efecto cascada), no el +1 propio del
+// nodo intervenido ni su desequilibrio (1 - init).
+//   impact = totalScore(post,  exclude=diana)
+//          - totalScore(control, exclude=diana)
+//          = (totalScore(post) - postValue_diana)
+//          - (baseScore      - controlValue_diana)
+// donde baseScore = totalScore(control) (Σ de TODOS los nodos del control,
+// el mismo escalar para todas las intervenciones) y controlValue_diana es
+// el valor final del diana en la simulación de control.
 // Al final restaura el snapshot completo (modo incluido).
 //
 // options:
@@ -288,7 +305,8 @@ NIRA.analyze = function(loopy, options){
     var totalTasks = nodes.length + 1; // control + 1 por nodo
     var taskIndex = 0;     // 0 = control, k>0 = nodo k-1
     var taskTicksDone = 0; // ticks consumidos en la tarea actual
-    var baseScore = 0;
+    var baseScore = 0;     // puntaje total del control (Σ de todos los nodos)
+    var controlValues = null; // valor final de cada nodo en el control
     var results = [];
     var aborted = false;
 
@@ -317,13 +335,34 @@ NIRA.analyze = function(loopy, options){
             return;
         }
         if(taskIndex === 0){
-            // Tarea de control
+            // Tarea de control (sin intervenir). Línea base de referencia.
+            // baseScore = puntaje total del control con TODOS los nodos (sin
+            // exclusión: en el control no hay diana). Es el mismo escalar para
+            // todas las intervenciones.
             baseScore = NIRA.totalScore(model);
+            // Guardar el valor final de cada nodo en el control para que cada
+            // intervención pueda excluir su diana también del control:
+            //   controlScore(diana) = baseScore - controlValues[diana]
+            controlValues = [];
+            for(var ci=0; ci<model.nodes.length; ci++){
+                controlValues.push(model.nodes[ci].value);
+            }
         }else{
-            // Tarea de intervención sobre nodo taskIndex-1
-            var node = nodes[taskIndex-1];
-            var score = NIRA.totalScore(model);
-            var impact = score - baseScore;
+            // Tarea de intervención sobre nodo taskIndex-1.
+            // Métrica de DERRAME (spillover): excluimos el nodo diana del
+            // puntaje, tanto en post como en control. Lo que interesa en NIRA
+            // no es cuánto sube el nodo intervenido (eso es obvio, +1) ni su
+            // propio desequilibrio (1 - init), sino cuánto cambia el RESTO del
+            // sistema (efecto cascada). Excluir el diana elimina ese confusor
+            // y restaura la discriminación por topología.
+            //   impact = totalScore(post,  exclude=diana)   (= postScoreExcl)
+            //          - totalScore(control, exclude=diana) (= controlScoreExcl
+            //              = baseScore - controlValues[idx])
+            var idx = taskIndex - 1;
+            var node = nodes[idx];
+            var postScoreExcl = NIRA.totalScore(model, idx);   // Σ_post sin diana
+            var controlScoreExcl = baseScore - controlValues[idx]; // Σ_control sin diana
+            var impact = postScoreExcl - controlScoreExcl;     // derrame
             results.push({
                 node: node,
                 label: node.label,

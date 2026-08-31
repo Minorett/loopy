@@ -227,6 +227,7 @@ function Sidebar(loopy){
                 "<div class='nira-progress-fill'></div>"+
             "</div>"+
             "<div class='nira-status'></div>"+
+            "<div class='nira-caption' style='display:none'></div>"+
             "<div class='nira-list'></div>";
         _niraFill = container.querySelector(".nira-progress-fill");
         _niraBar = container.querySelector(".nira-progress");
@@ -244,9 +245,11 @@ function Sidebar(loopy){
         document.getElementById("nira_button").setAttribute("active","yes");
 
         var status = container.querySelector(".nira-status");
+        var caption = container.querySelector(".nira-caption");
         var list = container.querySelector(".nira-list");
         _niraBar.style.display = "block";
         _niraFill.style.width = "0%";
+        caption.style.display = "none";
         status.innerHTML = "Analizando intervenciones…";
 
         NIRA.analyze(loopy, {
@@ -258,7 +261,9 @@ function Sidebar(loopy){
             onComplete: function(results){
                 _niraBar.style.display = "none";
                 document.getElementById("nira_button").removeAttribute("active");
-                status.innerHTML = "Ranking de impacto (Δ puntaje total):";
+                status.innerHTML = "Impacto en el resto del sistema (derrame):";
+                caption.style.display = "block";
+                caption.innerHTML = "Mide cuánto cambian los demás nodos cuando intervienes sobre este. Excluye el nodo intervenido para aislar el efecto cascada.";
                 var html = "<ol>";
                 for(var i=0;i<results.length;i++){
                     var r = results[i];

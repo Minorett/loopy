@@ -370,25 +370,41 @@ console.log("\n[TEST 3] NIRA.analyze completo");
                                             ", maxAbs=" + maxAbs.toFixed(3) + ")");
     check(maxAbs > 0.01, "ranking conserva discriminación tras el clamp (maxAbs=" + maxAbs.toFixed(3) + " > 0.01)");
 
-    // (c) Opción A: recomputar manualmente el impacto del mejor nodo y
-    //     compararlo con el reportado: impacto = puntaje post - línea base.
+    // (c) Opción A (derrame): recomputar manualmente el impacto del mejor
+    //     nodo y compararlo con el reportado, usando la métrica de derrame
+    //     (excluye el nodo diana del puntaje, en post y en control):
+    //       impact = (Σ_post - postValue_diana) - (Σ_control - controlValue_diana)
     var userState = NIRA.snapshot(loopy); // estado del usuario (ya restaurado)
     var target = results[0];
+    var targetIdx = model.nodes.indexOf(target.node);
     loopy.mode = Loopy.MODE_PLAY;
     NIRA._resetSimState();
     NIRA.runSimulationUntilStable(loopy, 2000, 0.001, 5); // control
-    var baseScore = NIRA.totalScore(model);
+    var baseScore = NIRA.totalScore(model);                 // Σ_control (todos)
+    var controlValueDiana = model.nodes[targetIdx].value;   // controlValue_diana
     NIRA.restore(loopy, userState);
     loopy.mode = Loopy.MODE_PLAY;
     NIRA._resetSimState();
     target.node.takeSignal({ delta: 1 }); // misma intervención que el batch
     NIRA.runSimulationUntilStable(loopy, 2000, 0.001, 5);
-    var postScore = NIRA.totalScore(model);
-    var recomputed = postScore - baseScore;
-    closeTo(recomputed, target.impact, 1e-9, "impacto recomputado == impacto reportado (post - control, Opción A)");
+    var postScore = NIRA.totalScore(model);                 // Σ_post (todos)
+    var postValueDiana = model.nodes[targetIdx].value;      // postValue_diana
+    var recomputed = (postScore - postValueDiana) - (baseScore - controlValueDiana);
+    closeTo(recomputed, target.impact, 1e-9, "impacto de derrame recomputado == impacto reportado (excluye diana)");
     // Devolver el estado del usuario exactamente
     NIRA.restore(loopy, userState);
     loopy.mode = Loopy.MODE_EDIT;
+
+    // (c) DERARAME discrimina por topología: los impactos NO son todos
+    //     idénticos. Este es el fix del ranking plano: antes, en una red
+    //     conectada, +1 en cualquier nodo saturaba toda la componente y
+    //     todos daban el mismo impacto; al excluir el nodo diana queda
+    //     solo la propagación al resto, que sí difiere por conectividad.
+    //     Comprobamos que el rango (max - min) de los derrames supera un
+    //     umbral pequeño.
+    var minImp = Math.min.apply(null, results.map(function(r){ return r.impact; }));
+    var spread = maxAbs - minImp;
+    check(spread > 0.05, "derrames discriminan por topología (rango max-min=" + spread.toFixed(3) + " > 0.05)");
 
     // Estado restaurado exactamente
     closeTo(model.nodes[0].value, preValues[0], 0, "value[0] restaurado");
@@ -520,6 +536,78 @@ console.log("\n[TEST 5] clamp en red explosiva (realimentación fuerte)");
     check(Edge.allSignals.length === 0, "sin señales residuales");
     check(loopy.mode === Loopy.MODE_EDIT, "modo restaurado a EDIT");
     check(NIRA.running === false, "NIRA.running limpiado");
+})();
+
+// ============================================================
+// TEST 6: el derrame discrimina por topología (cadena dirigida)
+// ============================================================
+console.log("\n[TEST 6] derrame discrimina por topología (cadena dirigida)");
+(function(){
+    var loopy = new Loopy._ctor();
+    var model = new StubModel(loopy);
+    loopy.model = model;
+    // Cadena DIRIGIDA A->B->C->D->E con rama C->F. In all init 0.1.
+    // En la física de LOOPY un nodo solo cambia cuando RECIBE una señal
+    // (takeSignal) y no hay aristas de retorno => no hay realimentación.
+    // Por tanto, intervenir un nodo aguas arriba satura solo a los nodos
+    // DESCENDIENTES: el derrame depende de cuánta "cuenca" queda debajo.
+    // Un nodo SUMIDERO (E, F: sin aristas salientes) no propaga a nadie:
+    // su derrame es ~0. El nodo de ramificación C alcanza a D, E y F
+    // (más cuenca), así que su derrame es el mayor. Esto legitima el fix
+    // del ranking plano: era pura topología, no el +1 ni el init.
+    var A = model.addNode({id:1, label:"A", init:0.1, hue:0});
+    var B = model.addNode({id:2, label:"B", init:0.1, hue:1});
+    var C = model.addNode({id:3, label:"C", init:0.1, hue:2});
+    var D = model.addNode({id:4, label:"D", init:0.1, hue:3});
+    var E = model.addNode({id:5, label:"E", init:0.1, hue:4});
+    var F = model.addNode({id:6, label:"F", init:0.1, hue:5});
+    model.addEdge({from:A, to:B, strength:0.5});
+    model.addEdge({from:B, to:C, strength:0.5});
+    model.addEdge({from:C, to:D, strength:0.5});
+    model.addEdge({from:D, to:E, strength:0.5});
+    model.addEdge({from:C, to:F, strength:0.5});
+
+    var done = false;
+    var results = null;
+    NIRA.analyze(loopy, {
+        onComplete: function(r){ results = r; done = true; },
+        onError: function(m){ console.log("  ERROR: " + m); done = true; }
+    });
+    check(done && !!results, "analyze completó en cadena dirigida");
+    if(!results){
+        console.log("  ABORT: sin resultados");
+        return;
+    }
+    console.log("  ranking (label: impact): " + results.map(function(r){ return r.label + ":" + r.impact.toFixed(3); }).join("  "));
+
+    var byNode = {};
+    for(var j=0;j<results.length;j++) byNode[results[j].label] = results[j];
+    // Los nodos sumidero E y F (sin aristas salientes) NO propagan a nadie:
+    // intervenir +1 en ellos no cambia el resto del sistema => derrame ~0.
+    closeTo(byNode["E"].impact, 0, 1e-6, "derrame(E) ~ 0 (sumidero sin aristas salientes)");
+    closeTo(byNode["F"].impact, 0, 1e-6, "derrame(F) ~ 0 (sumidero sin aristas salientes)");
+    // El nodo de ramificación C alcanza la mayor cuenca descendente: debe
+    // ser estrictamente el de mayor derrame de todos.
+    var maxImp = Math.max.apply(null, results.map(function(r){ return r.impact; }));
+    check(byNode["C"] && Math.abs(byNode["C"].impact - maxImp) < 1e-9 &&
+          results[0].node === C, "derrame(C) es el mayor (ramificación, mayor cuenca)");
+
+    // Los derrames NO son todos idénticos: el fix del ranking plano. Antes,
+    // en una red conectada, +1 saturaba toda la componente y todos daban el
+    // mismo impacto; ahora la exclusión del nodo diana deja solo la
+    // propagación al resto, que difiere por conectividad (rango amplio).
+    var minImp = Math.min.apply(null, results.map(function(r){ return r.impact; }));
+    check(maxImp - minImp > 0.05, "derrames discriminan por topología (rango max-min=" + (maxImp-minImp).toFixed(3) + " > 0.05)");
+    var distinct = true;
+    for(var k=1;k<results.length;k++){
+        if(Math.abs(results[k].impact - results[0].impact) < 1e-6) distinct = false;
+    }
+    check(distinct, "derrames no todos idénticos (hay separación real entre valores)");
+
+    // Estado restaurado exacto + sin señales
+    check(loopy.mode === Loopy.MODE_EDIT, "modo restaurado a EDIT");
+    check(NIRA.running === false, "NIRA.running limpiado");
+    check(Edge.allSignals.length === 0, "sin señales residuales");
 })();
 
 // ============================================================
