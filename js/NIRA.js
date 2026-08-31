@@ -12,16 +12,18 @@ Parámetros fijos (Fase 1, auditados):
   - Umbral:         0.001 (Σ|Δvalue| entre ticks)
   - Ticks estables: 5
   - Tope de ticks:  2000
-  - Clamp de valores: [VALUE_MIN, VALUE_MAX] = [-1.2, 2.2]
-    (nominal 0..1 con buffer 1.2, la intención original de LOOPY en
-    Node.bound(); evita la explosión exponencial por realimentación
-    positiva y mantiene el puntaje total clínicamente significativo).
+  - Clamp de valores: [VALUE_MIN, VALUE_MAX] = [0, 1]
+    (rango nominal de LOOPY, alineado con la intención original de
+    Node.bound(): los nodos son niveles psicopatológicos normalizados,
+    el máximo total del sistema es N = Σ values con todos los nodos en
+    1; evita la explosión exponencial por realimentación positiva y
+    mantiene el puntaje total clínicamente significativo).
   - Cota de rango del IMPACTO: proporcional a la red, no fija.
     Cada nodo acotado a [VALUE_MIN, VALUE_MAX] contribuye a lo sumo
-    (VALUE_MAX - VALUE_MIN) = 3.4 al |impacto total| (post - control),
-    luego para N nodos el tope físico es  N * (VALUE_MAX - VALUE_MIN).
-    Con el factor de seguridad IMPACT_SAFETY_FACTOR = 1.05, la cota
-    práctica es  N * (VALUE_MAX - VALUE_MIN) * 1.05  (ver
+    (VALUE_MAX - VALUE_MIN) = 1 al |impacto total| (post - control),
+    luego para N nodos el tope físico es  N * (VALUE_MAX - VALUE_MIN)
+    = N. Con el factor de seguridad IMPACT_SAFETY_FACTOR = 1.05, la
+    cota práctica es  N * (VALUE_MAX - VALUE_MIN) * 1.05  (ver
     NIRA.impactRangeBound). Un número fijo (p. ej. 10) NO sirve: en
     redes largas saturadas el impacto escala con N.
 
@@ -38,14 +40,18 @@ var NIRA = {
     INTENSITY:         1,     // intervención: +1 a la alta
 
     // Límites de clamp de los valores de nodo DURANTE el batch NIRA.
-    // Nominal 0..1 con buffer 1.2 (intención original de Node.bound()):
-    //   VALUE_MIN = -1.2  (absorbe señales negativas / decaimiento)
-    //   VALUE_MAX =  2.2  (absorbe el boost +1 de la intervención)
-    // Sin clamp, los bucles de realimentación positiva hacen explotar
-    // los valores exponencialmente y el puntaje total (Σ values) se
-    // dispara (impactos de cientos de miles). Ajustables por constante.
-    VALUE_MIN:         -1.2,
-    VALUE_MAX:         2.2,
+    // Rango nominal de LOOPY [0, 1] (intención original de Node.bound(),
+    // sin el buffer 1.2 que usaba el fix anterior): los nodos son niveles
+    // psicopatológicos normalizados, el máximo total del sistema es N
+    // (Σ values con todos los nodos en 1) y, por tanto, el |impacto|
+    // máximo posible (post - control) es N. Un rango más amplio (p. ej.
+    // [-1.2, 2.2]) inflaba los impactos hasta ~7×3.4 ≈ 24 en redes de 7
+    // nodos, inconsistente con el máximo esperado de 7. Sin clamp, los
+    // bucles de realimentación positiva hacen explotar los valores
+    // exponencialmente y el puntaje total (Σ values) se dispara
+    // (impactos de cientos de miles). Ajustables por constante.
+    VALUE_MIN:         0,
+    VALUE_MAX:         1,
     // Margen de seguridad sobre el tope teórico para las aserciones de
     // rango del impacto (ver NIRA.impactRangeBound). 1.05 = 5%.
     IMPACT_SAFETY_FACTOR: 1.05,
@@ -93,11 +99,13 @@ NIRA.clampValues = function(model){
 // aserción de rango del impacto en tests/reportes. Es PROPORCIONAL a la
 // red, no un número fijo: cada nodo acotado a [VALUE_MIN, VALUE_MAX]
 // aporta a lo sumo (VALUE_MAX - VALUE_MIN) al |impacto total|, luego el
-// tope físico es n * (VALUE_MAX - VALUE_MIN); se multiplica por
-// IMPACT_SAFETY_FACTOR (1.05) de margen. Ej: red del owner (~5 nodos
-// saturada) => ~5 * 3.4 * 1.05 ≈ ±18 como cota dura; con nodos que no
-// saturan los impactos reales quedan muy por debajo (±5 a ±10).
-// Para 8 nodos saturados (TEST 3): 8 * 3.4 * 1.05 ≈ 28.6 (maxAbs real 17).
+// tope físico es n * (VALUE_MAX - VALUE_MIN). Con valores en [0,1] ese
+// tope es n (el máximo total del sistema es Σ values = N con todos los
+// nodos en 1); se multiplica por IMPACT_SAFETY_FACTOR (1.05) de margen.
+// Ej: red del owner (7 nodos) => 7 * 1 * 1.05 = 7.35 como cota dura;
+// los impactos reales (post - control) quedan por debajo salvo red
+// totalmente saturada. Para 8 nodos saturados (TEST 3): 8 * 1 * 1.05
+// ≈ 8.4 (el |impacto| real es ≤ N).
 NIRA.impactRangeBound = function(n){
     return n * (NIRA.VALUE_MAX - NIRA.VALUE_MIN) * NIRA.IMPACT_SAFETY_FACTOR;
 };

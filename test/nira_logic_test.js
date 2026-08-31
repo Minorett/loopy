@@ -325,6 +325,7 @@ console.log("\n[TEST 3] NIRA.analyze completo");
         return;
     }
     check(results.length === 8, "un resultado por nodo (" + results.length + ")");
+    console.log("  ranking (label: impact): " + results.map(function(r){ return r.label + ":" + r.impact.toFixed(3); }).join("  "));
 
     // Orden desc por impacto
     var sortedOK = true;
@@ -353,17 +354,20 @@ console.log("\n[TEST 3] NIRA.analyze completo");
     check(signOK, "impacto >= 0 con aristas positivas (post >= control, Opción A)");
 
     // (nuevo núcleo) impactos acotados y clínicamente significativos:
-    // con clamp [VALUE_MIN, VALUE_MAX] el |impacto| está acotado por una
-    // fórmula PROPORCIONAL a la red (ver NIRA.impactRangeBound):
+    // con clamp [VALUE_MIN, VALUE_MAX] = [0,1] el |impacto| está acotado
+    // por una fórmula PROPORCIONAL a la red: cada nodo vale a lo sumo 1,
+    // el máximo total (Σ values) es N, y por tanto |impacto| <= N
+    // (post - control). La cota práctica incluye el margen de seguridad:
     //     |impact| <= N * (VALUE_MAX - VALUE_MIN) * IMPACT_SAFETY_FACTOR
+    //              = N * 1 * 1.05  (ver NIRA.impactRangeBound).
     // La razón de no usar un número fijo (p. ej. 10): en una red larga
-    // saturada el impacto ESCALA con N (cada nodo aporta hasta
-    // VALUE_MAX - VALUE_MIN = 3.4), y 10 se queda corto (aquí, red de 8
-    // nodos saturada => maxAbs = 17.0, superando cualquier cota fija).
+    // saturada el impacto ESCALA con N y la cota debe acompañarlo.
     var maxAbs = Math.max.apply(null, results.map(function(r){ return Math.abs(r.impact); }));
     var impactBound = NIRA.impactRangeBound(results.length); // resultados = 1 por nodo
     check(maxAbs <= impactBound, "|impact| <= N*(VALUE_MAX-VALUE_MIN)*1.05 = " + impactBound.toFixed(2) +
                                  " (N=" + results.length + ", maxAbs=" + maxAbs.toFixed(3) + ")");
+    check(maxAbs <= results.length * 1.05, "|impact| <= N*1.05 (N=" + results.length +
+                                            ", maxAbs=" + maxAbs.toFixed(3) + ")");
     check(maxAbs > 0.01, "ranking conserva discriminación tras el clamp (maxAbs=" + maxAbs.toFixed(3) + " > 0.01)");
 
     // (c) Opción A: recomputar manualmente el impacto del mejor nodo y
@@ -497,13 +501,16 @@ console.log("\n[TEST 5] clamp en red explosiva (realimentación fuerte)");
         if(!isFinite(results[i].impact) || isNaN(results[i].impact)) finiteImpacts = false;
     }
     check(finiteImpacts, "todos los impactos finitos (sin Infinity/NaN)");
-    // Límite teórico del clamp: cada nodo en [VALUE_MIN, VALUE_MAX] =>
-    // por nodo |post - control| <= (VALUE_MAX - VALUE_MIN) = 3.4;
-    // 5 nodos => cota práctica NIRA.impactRangeBound(5) = 5*3.4*1.05 ≈ 17.85.
+    // Límite teórico del clamp: cada nodo en [VALUE_MIN, VALUE_MAX] = [0,1]
+    // => por nodo |post - control| <= (VALUE_MAX - VALUE_MIN) = 1;
+    // 5 nodos => cota práctica NIRA.impactRangeBound(5) = 5*1*1.05 = 5.25
+    // (y |impacto| <= N = 5 por el techo de Σ values con nodos en [0,1]).
     var maxAbs = Math.max.apply(null, results.map(function(r){ return Math.abs(r.impact); }));
     var impactBound = NIRA.impactRangeBound(nodes.length);
     check(maxAbs <= impactBound, "|impact| <= NIRA.impactRangeBound(N) = " + impactBound.toFixed(2) +
                                  " (N=" + nodes.length + ", maxAbs=" + maxAbs.toFixed(3) + ")");
+    check(maxAbs <= nodes.length * 1.05, "|impact| <= N*1.05 (N=" + nodes.length +
+                                          ", maxAbs=" + maxAbs.toFixed(3) + ")");
     // (d) estado del usuario restaurado exacto
     var valsOK = true;
     for(var j=0;j<model.nodes.length;j++){
