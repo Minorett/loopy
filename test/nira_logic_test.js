@@ -416,18 +416,17 @@ console.log("\n[TEST 3] NIRA.analyze completo");
     check(loopy.toolbar.dom.style.pointerEvents !== "none", "pointer events restaurados");
     check(Edge.allSignals.length === preAllSignals, "señales restauradas exactas (" + preAllSignals + ")");
 
-    // node.impact seteado coherente con el impacto de cada nodo
+    // node.impact (auras) SOLO en el top 5 del ranking: los 5 primeros
+    // llevan su impactNormalized, el resto queda en 0. El ranking (results
+    // con impactNormalized) sigue incluyendo TODOS los nodos.
     var impactOK = true;
     for(var i=0;i<nodes.length;i++){
         var ci = nodes[i].impact;
         if(ci === undefined || isNaN(ci) || ci < 0 || ci > 1) impactOK = false;
-        // Hallar la entrada del ranking para este nodo
-        for(var j=0;j<results.length;j++){
-            if(results[j].node === nodes[i]){
-                if(Math.abs(ci - results[j].impactNormalized) > 1e-9) impactOK = false;
-                break;
-            }
-        }
+    }
+    for(var j=0;j<results.length;j++){
+        var expected = (j < 5) ? results[j].impactNormalized : 0;
+        if(Math.abs(results[j].node.impact - expected) > 1e-9) impactOK = false;
     }
     // El nodo con |impact| máximo debe normalizar a 1
     var topPerNode = results.filter(function(r){ return Math.abs(r.impact) === maxAbs; });
@@ -435,6 +434,20 @@ console.log("\n[TEST 3] NIRA.analyze completo");
         if(topPerNode[k].impactNormalized < 0.999) impactOK = false;
     }
     check(impactOK, "node.impact asignado 0..1 coherente con el ranking");
+    // Auras top-5: exactamente 5 nodos con impact > 0 (los 5 primeros del
+    // ranking) y el resto con impact === 0; los no nulos corresponden a los
+    // top-5 por impactNormalized.
+    var withAura = nodes.filter(function(n){ return n.impact > 0; });
+    check(withAura.length === 5, "exactamente 5 nodos con aura (impact > 0) (" + withAura.length + ")");
+    var auraSetOK = true;
+    for(var m=0;m<5;m++){
+        if(results[m].node.impact <= 0) auraSetOK = false;
+        if(Math.abs(results[m].node.impact - results[m].impactNormalized) > 1e-9) auraSetOK = false;
+    }
+    for(var m=5;m<results.length;m++){
+        if(results[m].node.impact !== 0) auraSetOK = false;
+    }
+    check(auraSetOK, "auras = top-5 del ranking (resto impact === 0)");
 
     // Snapshot del usuario (un segundo analyze sobre estado limpio) funciona
     check(progressCalls > 5, "callback de progreso llamado (" + progressCalls + ")");

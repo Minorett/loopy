@@ -405,6 +405,15 @@ NIRA.analyze = function(loopy, options){
         }
         results.sort(function(a,b){ return b.impact - a.impact; });
 
+        // Auras SOLO en el top 5 del ranking: node.impact (0..1) se asigna
+        // únicamente a los 5 primeros; el resto queda en 0. Node.js dibuja
+        // el aura solo si showImpact && impact > 0, así que con esto queda
+        // automáticamente limitada a top 5. El ranking (results con
+        // impactNormalized) sigue incluyendo TODOS los nodos.
+        for(var i=0;i<results.length;i++){
+            results[i].node.impact = (i < 5) ? results[i].impactNormalized : 0;
+        }
+
         // Restaurar snapshot completo (valores/signales/modo) del usuario.
         NIRA._resetSimState();
         NIRA.restore(loopy, snap);
