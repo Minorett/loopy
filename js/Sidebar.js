@@ -170,7 +170,7 @@ function Sidebar(loopy){
 
             "<span class='mini_button' onclick='publish(\"model/new/confirm\")'>crear nueva red</span><br><br>"+
 
-            "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
+            // "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
             "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span><br><br>"+
             
             "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span><br><br>"+
@@ -310,6 +310,179 @@ function Sidebar(loopy){
     }
 
     }
+
+// ==========================================
+// NIRA: Controles de Estabilidad en Sidebar
+// ==========================================
+function setupNiraControls(loopy, container) {
+    // Evitar duplicados si ya existe
+    if (document.getElementById('nira-controls-container')) return;
+
+    var wrapper = document.createElement('div');
+    wrapper.id = 'nira-controls-container';
+    wrapper.style.marginTop = '20px';
+    wrapper.style.paddingTop = '15px';
+    wrapper.style.borderTop = '1px solid #ccc';
+
+    // 1. Slider de iteraciones
+    var sliderLabel = document.createElement('div');
+    sliderLabel.innerHTML = 'Iteraciones: <strong id="nira-iter-val">100</strong>';
+    sliderLabel.style.fontSize = '0.9em';
+    sliderLabel.style.marginBottom = '5px';
+
+    var slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = 50;
+    slider.max = 500;
+    slider.step = 10;
+    slider.value = 100;
+    slider.style.width = '100%';
+    slider.oninput = function() {
+        document.getElementById('nira-iter-val').innerText = this.value;
+        loopy.invalidateNiraCache(); // Invalidar si cambia el slider
+    };
+
+    // 2. Botón Simular
+    var btnSimulate = document.createElement('button');
+    btnSimulate.id = 'btn-nira-simulate';
+    btnSimulate.innerText = 'Simular impacto (NIRA)';
+    btnSimulate.style.width = '100%';
+    btnSimulate.style.marginTop = '10px';
+    btnSimulate.style.marginBottom = '5px';
+    
+    // 3. Barra de progreso
+    var progressBar = document.createElement('div');
+    progressBar.id = 'nira-progress';
+    progressBar.style.display = 'none';
+    progressBar.style.fontSize = '0.8em';
+    progressBar.style.color = '#666';
+    progressBar.style.marginBottom = '10px';
+
+    // 4. Toggle minimalista [x]
+    var toggleRow = document.createElement('div');
+    toggleRow.style.display = 'flex';
+    toggleRow.style.alignItems = 'center';
+    toggleRow.style.marginTop = '10px';
+
+    var toggle = document.createElement('span');
+    toggle.id = 'nira-toggle';
+    toggle.innerText = '[x]';
+    toggle.style.cursor = 'pointer';
+    toggle.style.fontWeight = 'bold';
+    toggle.style.marginRight = '8px';
+    
+    var toggleLabel = document.createElement('span');
+    toggleLabel.innerText = 'Mostrar ranking';
+    toggleLabel.style.fontSize = '0.85em';
+    toggleLabel.style.cursor = 'pointer';
+
+    toggleRow.appendChild(toggle);
+    toggleRow.appendChild(toggleLabel);
+
+    // 5. Lista de ranking (solo orden)
+    var rankingList = document.createElement('ul');
+    rankingList.id = 'nira-ranking-list';
+    rankingList.style.listStyleType = 'none';
+    rankingList.style.paddingLeft = '0';
+    rankingList.style.marginTop = '5px';
+    rankingList.style.fontSize = '0.9em';
+
+    // 6. Botón PDF
+    var btnPdf = document.createElement('button');
+    btnPdf.id = 'btn-nira-pdf';
+    btnPdf.innerText = 'descargar informe';
+    btnPdf.style.width = '100%';
+    btnPdf.style.marginTop = '10px';
+    btnPdf.style.fontSize = '0.85em';
+    btnPdf.style.display = 'none'; // Oculto hasta que haya resultados
+
+    // Ensamblar
+    wrapper.appendChild(sliderLabel);
+    wrapper.appendChild(slider);
+    wrapper.appendChild(btnSimulate);
+    wrapper.appendChild(progressBar);
+    wrapper.appendChild(toggleRow);
+    wrapper.appendChild(rankingList);
+    wrapper.appendChild(btnPdf);
+    container.appendChild(wrapper);
+
+    // --- LÓGICA DE EVENTOS ---
+
+    // Toggle
+    var toggleList = function() {
+        var list = document.getElementById('nira-ranking-list');
+        if (toggle.innerText === '[x]') {
+            toggle.innerText = '[ ]';
+            list.style.display = 'none';
+        } else {
+            toggle.innerText = '[x]';
+            list.style.display = 'block';
+        }
+    };
+    toggle.onclick = toggleList;
+    toggleLabel.onclick = toggleList;
+
+    // Botón Simular
+    btnSimulate.onclick = function() {
+        var iterations = parseInt(slider.value);
+        var currentHash = loopy.getModelHash();
+
+        // 1. Revisar Caché
+        if (loopy.niraCache.hash === currentHash && loopy.niraCache.iterations === iterations && loopy.niraCache.results) {
+            renderNiraRanking(loopy.niraCache.results);
+            return;
+        }
+
+        // 2. Ejecutar nuevo análisis
+        btnSimulate.disabled = true;
+        btnSimulate.innerText = 'Calculando...';
+        progressBar.style.display = 'block';
+        progressBar.innerText = 'Preparando...';
+
+        NIRA.analyzeStability(loopy, iterations, 
+            function(current, total) {
+                progressBar.innerText = 'Iteración ' + current + ' / ' + total;
+            },
+            function(results) {
+                // Guardar en caché
+                loopy.niraCache.hash = currentHash;
+                loopy.niraCache.iterations = iterations;
+                loopy.niraCache.results = results;
+
+                // Restaurar UI
+                btnSimulate.disabled = false;
+                btnSimulate.innerText = 'Simular impacto (NIRA)';
+                progressBar.style.display = 'none';
+                
+                renderNiraRanking(results);
+            },
+            function(err) {
+                btnSimulate.disabled = false;
+                btnSimulate.innerText = 'Simular impacto (NIRA)';
+                progressBar.style.display = 'none';
+                alert("Error: " + err);
+            }
+        );
+    };
+
+    // Botón PDF
+    btnPdf.onclick = function() {
+        generateNiraPDF(loopy.niraCache.results, iterations);
+    };
+
+    // Función interna para renderizar
+    function renderNiraRanking(results) {
+        rankingList.innerHTML = '';
+        results.forEach(function(r) {
+            var li = document.createElement('li');
+            li.innerText = r.label; // Solo el nombre, sin porcentajes
+            li.style.padding = '3px 0';
+            li.style.borderBottom = '1px solid #eee';
+            rankingList.appendChild(li);
+        });
+        btnPdf.style.display = 'block'; // Mostrar botón PDF
+    }
+}
 
 function SidebarPage(){
 
