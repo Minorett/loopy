@@ -172,9 +172,10 @@ function Sidebar(loopy){
 
             "<span class='mini_button' onclick='publish(\"modal\",[\"examples\"])'>ver ejemplos</span> "+
             "<span class='mini_button' onclick='publish(\"modal\",[\"howto\"])'>tutorial</span><br><br>"+
-            "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span> "+
-            "<span class='mini_button' id='nira_button' onclick='publish(\"nira/analyze\")'>analizar intervenciones (NIRA)</span><br><br>"+
-            "<div id='nira-ranking'></div><br>"+
+            
+            "<span class='mini_button' id='centrality_button' onclick='publish(\"centrality/toggle\")'>analizar centralidad</span><br><br>"+
+            
+            // >>> EL BOTÓN ANTIGUO DE NIRA SE ELIMINÓ DE AQUÍ <<<
 
             "<hr/><br>"+
 
@@ -189,9 +190,16 @@ function Sidebar(loopy){
             "<a target='_blank' href='../'>LOOPY</a> está "+
             "hecho por <a target='_blank' href='http://ncase.me'>nicky case</a> "+
             "con ayuda de <a target='_blank' href='https://www.patreon.com/ncase'> patreon</a> &lt;3<br><br>"+
-            "<span style='font-size:1em'>Traducción de Loopy hecha por Lic. Mathias Nicolás Rojas de la Fuente M.N. 87001</a></span>"
+            "<span style='font-size:1em'>Traducción de Loopy hecha por Lic. Mathias Nicolás Rojas de la Fuente M.N. 87001</span>"
 
         }));
+        
+        // >>> AQUÍ INYECTAMOS LOS NUEVOS CONTROLES DE NIRA <<<
+        // Se ejecuta después de que el HTML base se añade al DOM de la página
+        setTimeout(function() {
+            setupNiraControls(loopy, page.dom);
+        }, 0);
+
         self.addPage("Edit", page);
     })();
 
