@@ -490,3 +490,116 @@ NIRA.analyze = function(loopy, options){
 NIRA._resetSimState = function(){
     NIRA._prevValues = null;
 };
+
+/**********************************
+ * NIRA: Pasada rápida (sin UI) para batching
+ **********************************/
+NIRA._runSinglePass = function(loopy, callback) {
+    var model = loopy.model;
+    var nodes = model.nodes;
+    var snap = NIRA.snapshot(loopy);
+    var prevMode = loopy.mode;
+    loopy.mode = Loopy.MODE_PLAY;
+
+    // 1. Control
+    NIRA.runSimulationUntilStable(loopy, NIRA.MAX_TICKS, NIRA.THRESHOLD, NIRA.MIN_STABLE_TICKS);
+    var baseScore = NIRA.totalScore(model);
+    var controlValues = nodes.map(function(n) { return n.value; });
+
+    var results = [];
+
+    // 2. Intervenciones
+    for (var i = 0; i < nodes.length; i++) {
+        NIRA.restore(loopy, snap);
+        loopy.mode = Loopy.MODE_PLAY;
+        
+        var node = nodes[i];
+        node.takeSignal({ delta: NIRA.INTENSITY });
+        NIRA.clampValues(model);
+        
+        NIRA.runSimulationUntilStable(loopy, NIRA.MAX_TICKS, NIRA.THRESHOLD, NIRA.MIN_STABLE_TICKS);
+        
+        var postScoreExcl = NIRA.totalScore(model, i);
+        var controlScoreExcl = baseScore - controlValues[i];
+        var impact = postScoreExcl - controlScoreExcl;
+        
+        results.push({
+            node: node,
+            label: node.label,
+            impact: impact
+        });
+    }
+
+    // 3. Ordenar y restaurar
+    results.sort(function(a, b) { return b.impact - a.impact; });
+    NIRA.restore(loopy, snap);
+    loopy.mode = prevMode;
+    
+    callback(results);
+};
+
+/**********************************
+ * NIRA: Análisis de Estabilidad (Múltiples Iteraciones)
+ **********************************/
+NIRA.analyzeStability = function(loopy, iterations, onProgress, onComplete, onError) {
+    if (NIRA.running) return;
+    var model = loopy.model;
+    if (!model || model.nodes.length === 0) {
+        onError("No hay nodos en la red para analizar.");
+        return;
+    }
+
+    NIRA.running = true;
+    var nodes = model.nodes;
+    var stabilityCounts = {};
+    nodes.forEach(function(n) {
+        stabilityCounts[n.id] = { label: n.label, top1: 0, top3: 0, top5: 0 };
+    });
+
+    var currentIter = 0;
+    var batchSize = 5; // 5 iteraciones por frame para no bloquear la UI
+
+    var processBatch = function() {
+        if (currentIter >= iterations) {
+            // Finalizado: Calcular porcentajes y ordenar
+            var finalRanking = [];
+            for (var id in stabilityCounts) {
+                var counts = stabilityCounts[id];
+                finalRanking.push({
+                    label: counts.label,
+                    top1: (counts.top1 / iterations) * 100,
+                    top3: (counts.top3 / iterations) * 100,
+                    top5: (counts.top5 / iterations) * 100
+                });
+            }
+            finalRanking.sort(function(a, b) { return b.top1 - a.top1; });
+            
+            NIRA.running = false;
+            loopy._niraRunning = false;
+            loopy.showImpact = false; // Ocultar auras al terminar el análisis de estabilidad
+            onComplete(finalRanking);
+            return;
+        }
+
+        var limit = Math.min(currentIter + batchSize, iterations);
+        
+        // Ejecutar lote de forma síncrona pero rápida
+        for (var i = currentIter; i < limit; i++) {
+            NIRA._runSinglePass(loopy, function(singleRunResults) {
+                for (var j = 0; j < Math.min(5, singleRunResults.length); j++) {
+                    var nodeId = singleRunResults[j].node.id;
+                    if (j === 0) stabilityCounts[nodeId].top1++;
+                    if (j < 3) stabilityCounts[nodeId].top3++;
+                    if (j < 5) stabilityCounts[nodeId].top5++;
+                }
+            });
+            currentIter++;
+        }
+        
+        onProgress(currentIter, iterations);
+        setTimeout(processBatch, 0); // Ceder el hilo al navegador
+    };
+
+    loopy._niraRunning = true;
+    setTimeout(processBatch, 0);
+};
