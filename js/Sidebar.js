@@ -250,8 +250,6 @@ function Sidebar(loopy){
             .replace(/"/g,"&quot;");
     }
 
-    }
-
 // ==========================================
 // NIRA: Controles de Estabilidad en Sidebar
 // ==========================================
