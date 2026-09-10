@@ -242,65 +242,6 @@ function Sidebar(loopy){
         return container;
     };
 
-    subscribe("nira/analyze", function(){
-        if(!window.NIRA || NIRA.running) return;
-        var container = _initNiraUI();
-        if(!container){
-            console.error("NIRA: no se encontró #nira-ranking");
-            return;
-        }
-        // Estilos de botón activo
-        document.getElementById("nira_button").setAttribute("active","yes");
-
-        var status = container.querySelector(".nira-status");
-        var caption = container.querySelector(".nira-caption");
-        var list = container.querySelector(".nira-list");
-        _niraBar.style.display = "block";
-        _niraFill.style.width = "0%";
-        caption.style.display = "none";
-        status.innerHTML = "Analizando intervenciones…";
-
-        NIRA.analyze(loopy, {
-            onProgress: function(p){
-                var pct = Math.round(p*100);
-                _niraFill.style.width = pct + "%";
-                status.innerHTML = "Analizando intervenciones… " + pct + "%";
-            },
-            onComplete: function(results){
-                _niraBar.style.display = "none";
-                document.getElementById("nira_button").removeAttribute("active");
-                status.innerHTML = "Impacto en el resto del sistema (derrame):";
-                caption.style.display = "block";
-                caption.innerHTML = "Mide cuánto cambian los demás nodos cuando intervienes sobre este. Excluye el nodo intervenido para aislar el efecto cascada.";
-                var html = "<ol>";
-                for(var i=0;i<results.length;i++){
-                    var r = results[i];
-                    var color = Node.COLORS[r.node.hue];
-                    html += "<li>"+
-                        "<span class='nira-dot' style='background:"+color+"'></span>"+
-                        "<span class='nira-label'>"+_escapeHtml(r.label||"?")+"</span>"+
-                        "<span class='nira-value'>"+r.impact.toFixed(3)+"</span>"+
-                    "</li>";
-                }
-                html += "</ol>";
-                html += "<div class='nira-actions'><span class='mini_button' onclick='publish(\"nira/aura/toggle\")'>ocultar/mostrar auras</span></div>";
-                list.innerHTML = html;
-            },
-            onError: function(msg){
-                _niraBar.style.display = "none";
-                document.getElementById("nira_button").removeAttribute("active");
-                status.innerHTML = msg;
-                list.innerHTML = "";
-            }
-        });
-    });
-
-    // NIRA: alternar auras de impacto
-    subscribe("nira/aura/toggle", function(){
-        loopy.showImpact = !loopy.showImpact;
-        publish("view/changed");
-    });
-
     function _escapeHtml(text){
         return String(text)
             .replace(/&/g,"&amp;")
@@ -852,4 +793,73 @@ function ComponentChoices(config){
         }
     };
 
+}
+
+// ==========================================
+// NIRA: Generación de Informe PDF
+// ==========================================
+function generateNiraPDF(results, iterations) {
+    if (!results || results.length === 0) {
+        alert("Primero debes ejecutar una simulación.");
+        return;
+    }
+
+    if (typeof window.jspdf === 'undefined') {
+        alert("Error: Librería jsPDF no cargada. Revisa tu conexión a internet o el <head> de index.html.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // 1. Título y Metadatos
+    doc.setFontSize(16);
+    doc.text("Informe de estabilidad NIRA", 14, 20);
+    
+    doc.setFontSize(10);
+    var now = new Date();
+    var dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+    doc.text("Fecha y hora: " + dateStr, 14, 30);
+    doc.text("Número de iteraciones: " + iterations, 14, 36);
+    
+    // 2. Tabla de resultados
+    var tableData = results.map(function(r) {
+        return [r.label, r.top1.toFixed(1) + '%', r.top3.toFixed(1) + '%', r.top5.toFixed(1) + '%'];
+    });
+    
+    if (typeof doc.autoTable === 'function') {
+        doc.autoTable({
+            startY: 45,
+            head: [['Nodo', 'Top 1 (%)', 'Top 3 (%)', 'Top 5 (%)']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [41, 128, 185] },
+            styles: { fontSize: 10 }
+        });
+    } else {
+        var yPos = 45;
+        doc.text("Nodo | Top 1 | Top 3 | Top 5", 14, yPos);
+        yPos += 10;
+        results.forEach(function(r) {
+            doc.text(r.label + " | " + r.top1.toFixed(1) + "% | " + r.top3.toFixed(1) + "% | " + r.top5.toFixed(1) + "%", 14, yPos);
+            yPos += 7;
+        });
+    }
+    
+    // 3. Pie de página con enlace
+    var pageCount = doc.internal.getNumberOfPages();
+    var pageHeight = doc.internal.pageSize.height;
+    
+    for (var i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.text("En medio del Contexto — Loopy", 14, pageHeight - 10);
+        doc.textWithLink("https://enmediodelcontexto.com.ar/", 85, pageHeight - 10, {
+            url: "https://enmediodelcontexto.com.ar/"
+        });
+    }
+    
+    // 4. Descargar
+    doc.save("informe-estabilidad-nira.pdf");
 }
