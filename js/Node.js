@@ -40,7 +40,18 @@ function Node(model, config){
         label: "?",
         hue: Node.defaultHue,
         radius: Node.DEFAULT_RADIUS,
-        shape: "circle"
+        shape: "circle",
+        // MOLAR (Fase 1): agrupación clínica "Molecular → Molar".
+        // hidden: nodo oculto (hijo dentro de un grupo molar)
+        // isMolar: el nodo actúa como grupo molar
+        // children: array de Node hijos (solo si isMolar), si no null
+        // savedEdges: aristas guardadas al colapsar (solo molar), si no null
+        // borderWidth: 2 = normal, otro valor = molar (borde grueso)
+        hidden: false,
+        isMolar: false,
+        children: null,
+        savedEdges: null,
+        borderWidth: 2
     });
 
     self.getDisplayRadius = function() {
@@ -73,6 +84,9 @@ function Node(model, config){
     var _controlsPressed = false;    
     var _listenerMouseMove = subscribe("mousemove", function(){
 
+        // MOLAR: nodos ocultos no interactúan
+        if(self.hidden) return;
+
         // ONLY WHEN PLAYING
         if(self.loopy.mode!=Loopy.MODE_PLAY) return;
         // NIRA: no mostrar controles de edición durante el análisis
@@ -91,6 +105,9 @@ function Node(model, config){
 
     });
     var _listenerMouseDown = subscribe("mousedown",function(){
+
+        // MOLAR: nodos ocultos no interactúan
+        if(self.hidden) return;
 
         if(self.loopy.mode!=Loopy.MODE_PLAY) return; // ONLY WHEN PLAYING
         if(self.loopy._niraRunning) return; // NIRA: sin edición durante el análisis
@@ -257,6 +274,9 @@ var _listenerReset = subscribe("model/reset", function(){
     };
     self.draw = function(ctx){
 
+        // MOLAR: nodos ocultos no se dibujan
+        if(self.hidden) return;
+
         // Retina
         var x = self.x*2;
         var y = self.y*2;
@@ -328,7 +348,8 @@ var _listenerReset = subscribe("model/reset", function(){
         self.getPath(ctx, r-2);
         ctx.fillStyle = "#fff";
         ctx.fill();
-        ctx.lineWidth = 6;
+        // MOLAR: borde grueso (12) para molares, normal (6) para el resto
+        ctx.lineWidth = self.borderWidth === 2 ? 6 : 12;
         ctx.strokeStyle = color;
         ctx.stroke();
         

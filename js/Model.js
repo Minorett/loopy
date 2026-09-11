@@ -228,7 +228,11 @@ function Model(loopy){
         // Draw labels THEN edges THEN nodes
         for(var i=0;i<self.labels.length;i++) self.labels[i].draw(ctx);
         for(var i=0;i<self.edges.length;i++) self.edges[i].draw(ctx);
-        for(var i=0;i<self.nodes.length;i++) self.nodes[i].draw(ctx);
+        for(var i=0;i<self.nodes.length;i++){
+            var node = self.nodes[i];
+            if(node.hidden) continue; // MOLAR: no dibujar nodos ocultos
+            node.draw(ctx);
+        }
 
         // Restore
         ctx.restore();
@@ -261,6 +265,11 @@ function Model(loopy){
             // 4 - label
             // 5 - hue
             // 6 - shape
+            // 7 - hidden (1/0)
+            // 8 - isMolar (1/0)
+            // 9 - children (ids de nodos) o null
+            // 10 - savedEdges o null
+            // 11 - borderWidth (2 = normal)
             nodes.push([
                 node.id,
                 Math.round(node.x),
@@ -268,7 +277,12 @@ function Model(loopy){
                 node.init,
                 encodeURIComponent(encodeURIComponent(node.label)),
                 node.hue,
-                node.shape
+                node.shape,
+                node.hidden ? 1 : 0,
+                node.isMolar ? 1 : 0,
+                node.children ? node.children.map(function(c){ return (c && c.id!==undefined) ? c.id : c; }) : null,
+                node.savedEdges || null,
+                node.borderWidth || 2
             ]);
         }
         data.push(nodes);
@@ -347,8 +361,58 @@ function Model(loopy){
                 init: node[3],
                 label: decodeURIComponent(node[4]),
                 hue: node[5],
-                shape: node[6] || "circle"
+                shape: node[6] || "circle",
+                // MOLAR (Fase 1): campos nuevos, con defaults si no existen
+                // (compatibilidad hacia atrás con archivos de 7 posiciones).
+                hidden: !!node[7],
+                isMolar: !!node[8],
+                children: node[9] || null,
+                savedEdges: node[10] || null,
+                borderWidth: (node[11]===undefined) ? 2 : node[11]
             });
+        }
+
+        // MOLAR (Fase 1): pos-proceso con TODOS los nodos ya creados.
+        // Sanear datos corruptos:
+        //  (a) Un molar debe tener TODOS sus hijos vivos en el modelo; si
+        //      falta alguno, se degrada a nodo normal (isMolar=false,
+        //      children=null, savedEdges=null, borderWidth=2).
+        //  (b) Un nodo oculto que NO pertenezca al array children de un
+        //      molar vivo se muestra de nuevo (hidden=false).
+        // children se serializan como ids; aquí se resuelven a nodos vivos.
+        for(var i=0;i<self.nodes.length;i++){
+            var n = self.nodes[i];
+            if(n.isMolar && n.children && n.children.length>0){
+                var resolved = [];
+                var allAlive = true;
+                for(var j=0;j<n.children.length;j++){
+                    var child = self.nodeByID[n.children[j]];
+                    if(!child){ allAlive = false; break; }
+                    resolved.push(child);
+                }
+                if(!allAlive){
+                    n.isMolar = false;
+                    n.children = null;
+                    n.savedEdges = null;
+                    n.borderWidth = 2;
+                }else{
+                    n.children = resolved;
+                }
+            }
+        }
+        for(var i=0;i<self.nodes.length;i++){
+            var n = self.nodes[i];
+            if(n.hidden){
+                var ownedByMolar = false;
+                for(var j=0;j<self.nodes.length;j++){
+                    var m = self.nodes[j];
+                    if(m.isMolar && m.children && m.children.indexOf(n)!==-1){
+                        ownedByMolar = true;
+                        break;
+                    }
+                }
+                if(!ownedByMolar) n.hidden = false;
+            }
         }
 
         // Edges
@@ -413,6 +477,7 @@ function Model(loopy){
         var result;
         for(var i=self.nodes.length-1; i>=0; i--){ // top-down
             var node = self.nodes[i];
+            if(node.hidden) continue; // MOLAR: nodos ocultos no son clicables
             if(node.isPointInNode(x,y,buffer)) return node;
         }
         return null;
@@ -530,6 +595,7 @@ function Model(loopy){
 
             // Reset node scores
             for(var i=0; i<self.nodes.length; i++){
+                if(self.nodes[i].hidden) continue; // MOLAR: los ocultos no participan
                 self.nodes[i].centrality = 0;
             }
 
@@ -537,6 +603,7 @@ function Model(loopy){
             var maxCentrality = 0;
             for(var i=0; i<self.edges.length; i++){
                 var edge = self.edges[i];
+                if(edge.from.hidden || edge.to.hidden) continue; // MOLAR: aristas de/para ocultos no suman
                 var strength = Math.abs(edge.strength);
                 edge.from.centrality += strength;
                 edge.to.centrality += strength;
@@ -545,6 +612,7 @@ function Model(loopy){
             // Find max centrality
             var scores = [];
             for(var i=0; i<self.nodes.length; i++){
+                if(self.nodes[i].hidden) continue; // MOLAR: los ocultos no participan
                 var c = self.nodes[i].centrality;
                 scores.push(c);
                 if(c > maxCentrality){
