@@ -62,7 +62,7 @@ function Loopy(config){
     
     self.niraCache = {
         hash: null,
-        iterations: 0,
+        simulaciones: 0,
         results: null
     };
     
