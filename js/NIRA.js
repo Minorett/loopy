@@ -492,26 +492,42 @@ NIRA._resetSimState = function(){
 };
 
 /**********************************
- * NIRA: Pasada rápida (sin UI) para batching
- **********************************/
-NIRA._runSinglePass = function(loopy, callback) {
+NIRA: Pasada rápida CON perturbación (rompe el determinismo)
+**********************************/
+NIRA._runSinglePass = function(loopy) {
     var model = loopy.model;
     var nodes = model.nodes;
     var snap = NIRA.snapshot(loopy);
     var prevMode = loopy.mode;
     loopy.mode = Loopy.MODE_PLAY;
 
-    // 1. Control
+    // >>> PERTURBACIÓN ALEATORIA (RUIDO) <<<
+    var perturbationStrength = 0.05; // 5% de ruido
+    for (var i = 0; i < nodes.length; i++) {
+        var noise = (Math.random() - 0.5) * 2 * perturbationStrength;
+        nodes[i].value = Math.max(0, Math.min(1, nodes[i].value + noise));
+    }
+
+    // 1. Control (baseline) con ruido
     NIRA.runSimulationUntilStable(loopy, NIRA.MAX_TICKS, NIRA.THRESHOLD, NIRA.MIN_STABLE_TICKS);
     var baseScore = NIRA.totalScore(model);
     var controlValues = nodes.map(function(n) { return n.value; });
-
     var results = [];
 
-    // 2. Intervenciones
+    // 2. Intervenciones (una por nodo)
     for (var i = 0; i < nodes.length; i++) {
         NIRA.restore(loopy, snap);
         loopy.mode = Loopy.MODE_PLAY;
+        
+        // Re-aplicar perturbación aleatoria
+        for (var k = 0; k < nodes.length; k++) {
+            var noise = (Math.random() - 0.5) * 2 * perturbationStrength;
+            nodes[k].value = Math.max(0, Math.min(1, nodes[k].value + noise));
+        }
+        
+        NIRA.runSimulationUntilStable(loopy, NIRA.MAX_TICKS, NIRA.THRESHOLD, NIRA.MIN_STABLE_TICKS);
+        var perturbedBaseScore = NIRA.totalScore(model);
+        var perturbedControlValues = nodes.map(function(n) { return n.value; });
         
         var node = nodes[i];
         node.takeSignal({ delta: NIRA.INTENSITY });
@@ -520,27 +536,22 @@ NIRA._runSinglePass = function(loopy, callback) {
         NIRA.runSimulationUntilStable(loopy, NIRA.MAX_TICKS, NIRA.THRESHOLD, NIRA.MIN_STABLE_TICKS);
         
         var postScoreExcl = NIRA.totalScore(model, i);
-        var controlScoreExcl = baseScore - controlValues[i];
+        var controlScoreExcl = perturbedBaseScore - perturbedControlValues[i];
         var impact = postScoreExcl - controlScoreExcl;
         
-        results.push({
-            node: node,
-            label: node.label,
-            impact: impact
-        });
+        results.push({ node: node, label: node.label, impact: impact });
     }
 
     // 3. Ordenar y restaurar
     results.sort(function(a, b) { return b.impact - a.impact; });
     NIRA.restore(loopy, snap);
     loopy.mode = prevMode;
-    
-    callback(results);
+    return results;
 };
 
 /**********************************
- * NIRA: Análisis de Estabilidad (Múltiples Iteraciones)
- **********************************/
+NIRA: Análisis de Estabilidad (MICRO-BATCHING + CANCELAR)
+**********************************/
 NIRA.analyzeStability = function(loopy, iterations, onProgress, onComplete, onError) {
     if (NIRA.running) return;
     var model = loopy.model;
@@ -550,6 +561,7 @@ NIRA.analyzeStability = function(loopy, iterations, onProgress, onComplete, onEr
     }
 
     NIRA.running = true;
+    NIRA.cancelled = false;
     var nodes = model.nodes;
     var stabilityCounts = {};
     nodes.forEach(function(n) {
@@ -557,11 +569,16 @@ NIRA.analyzeStability = function(loopy, iterations, onProgress, onComplete, onEr
     });
 
     var currentIter = 0;
-    var batchSize = 5; // 5 iteraciones por frame para no bloquear la UI
+    var batchSize = 5; // Lotes de 5 para no congelar la UI
 
     var processBatch = function() {
+        if (NIRA.cancelled) {
+            NIRA.running = false;
+            onError("Análisis cancelado por el usuario.");
+            return;
+        }
+
         if (currentIter >= iterations) {
-            // Finalizado: Calcular porcentajes y ordenar
             var finalRanking = [];
             for (var id in stabilityCounts) {
                 var counts = stabilityCounts[id];
@@ -575,31 +592,30 @@ NIRA.analyzeStability = function(loopy, iterations, onProgress, onComplete, onEr
             finalRanking.sort(function(a, b) { return b.top1 - a.top1; });
             
             NIRA.running = false;
-            loopy._niraRunning = false;
-            loopy.showImpact = false; // Ocultar auras al terminar el análisis de estabilidad
             onComplete(finalRanking);
             return;
         }
 
         var limit = Math.min(currentIter + batchSize, iterations);
-        
-        // Ejecutar lote de forma síncrona pero rápida
         for (var i = currentIter; i < limit; i++) {
-            NIRA._runSinglePass(loopy, function(singleRunResults) {
-                for (var j = 0; j < Math.min(5, singleRunResults.length); j++) {
-                    var nodeId = singleRunResults[j].node.id;
-                    if (j === 0) stabilityCounts[nodeId].top1++;
-                    if (j < 3) stabilityCounts[nodeId].top3++;
-                    if (j < 5) stabilityCounts[nodeId].top5++;
-                }
-            });
-            currentIter++;
+            var singleRunResults = NIRA._runSinglePass(loopy);
+            for (var j = 0; j < Math.min(5, singleRunResults.length); j++) {
+                var nodeId = singleRunResults[j].node.id;
+                if (j === 0) stabilityCounts[nodeId].top1++;
+                if (j < 3) stabilityCounts[nodeId].top3++;
+                if (j < 5) stabilityCounts[nodeId].top5++;
+            }
         }
-        
+        currentIter = limit;
+
         onProgress(currentIter, iterations);
-        setTimeout(processBatch, 0); // Ceder el hilo al navegador
+        setTimeout(processBatch, 0); // Cede el hilo al navegador
     };
 
-    loopy._niraRunning = true;
     setTimeout(processBatch, 0);
+};
+
+// Función global para cancelar el análisis
+NIRA.cancel = function() {
+    NIRA.cancelled = true;
 };
