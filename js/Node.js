@@ -114,9 +114,16 @@ function Node(model, config){
     var _listenerMouseUp = subscribe("mouseup",function(){
         _controlsPressed = false;
     });
-    var _listenerReset = subscribe("model/reset", function(){
-        self.value = self.init;
-    });
+var _listenerReset = subscribe("model/reset", function(){
+    self.value = self.init;
+
+    // Limpiar agregación pendiente
+    if(self.aggregate){
+        clearTimeout(self.aggregate);
+        self.aggregate = null;
+    }
+    self.deltaPool = 0;
+});
     var _listenerMode = subscribe("loopy/mode", function(){
         _controlsVisible = false;
         _controlsAlpha = 0;
@@ -138,15 +145,52 @@ function Node(model, config){
             myEdges[i].addSignal(signal);
         }
     };
-    
+
+    // Agregación: acumula señales entrantes y emite UNA sola por ráfaga.
+    // Latencia en segundos. 0 = sin agregación.
+    self.aggregationLatency = 0.1;
+    self.deltaPool = 0;
+    self.aggregate = null;
+
     self.takeSignal = function(signal){
-        self.value += signal.delta;
-        self.bound();
-        self.sendSignal({ delta: self.value * 0.3 });
-        if(signal.delta !== 0){  // ← guardia anti-NaN
+
+        // Animación visual (siempre)
+        if(signal.delta !== 0){
             _offsetVel -= 6 * (signal.delta / Math.abs(signal.delta));
         }
+
+        // Acumular en el pool
+        self.deltaPool += signal.delta;
+
+        // Actualizar value inmediatamente → el círculo crece con cada señal
+        self.value += signal.delta;
+        self.bound();
+
+        // Si ya hay un timeout pendiente, solo acumulamos y salimos
+        if(self.aggregate) return;
+
+        var myAge = signal.age;
+        self.aggregate = setTimeout(function(){
+            // Solo emitir si seguimos en PLAY
+            if(self.loopy.mode === Loopy.MODE_PLAY){
+                self.sendSignal({
+                    delta: self.value * 0.3,   // ← value, no deltaPool
+                    age: myAge
+                });
+            }
+            self.deltaPool = 0;
+            self.aggregate = null;
+        }, self.aggregationLatency * 1000);
     };
+
+    // Limpiar agregación pendiente en reset
+    var _listenerReset = subscribe("model/reset", function(){
+        if(self.aggregate){
+            clearTimeout(self.aggregate);
+            self.aggregate = null;
+        }
+        self.deltaPool = 0;
+    });
 
     //////////////////////////////////////
     // UPDATE & DRAW /////////////////////
