@@ -18,6 +18,14 @@ function subscribe(topic, fn){
     _subscriptions[topic].push(fn);
 }
 
+function unsubscribe(topic, fn){
+    var subs = _subscriptions[topic];
+    if(!subs) return;
+    var index = subs.indexOf(fn);
+    if(index !== -1){
+        subs.splice(index, 1);
+    }
+}
 /*****************************
 
 A miscellaneous collection of reuseable helper methods
